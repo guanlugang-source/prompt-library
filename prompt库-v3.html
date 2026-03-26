@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt 框架库 v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0e0c;--bg2:#181714;--bg3:#211f1b;--bg4:#2a2722;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+  --text:#e8e4dc;--text2:#9a9590;--text3:#5a5550;
+  --gold:#c8973a;--gold2:#f0be6a;--gold-bg:rgba(200,151,58,0.1);--gold-bg2:rgba(200,151,58,0.18);
+  --green:#3a9a5c;--green-bg:rgba(58,154,92,0.12);
+  --red:#c04040;--red-bg:rgba(192,64,64,0.12);
+  --blue:#3a7ab0;--blue-bg:rgba(58,122,176,0.12);
+  --c1:#c0622a;--c2:#2b6fa0;--c3:#2a7b5e;--c4:#7a5bb0;--c5:#b84040;
+  --radius:8px;--radius-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── Header ── */
+header{padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:26px;height:26px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0f0e0c;font-family:'DM Mono',monospace;}
+.logo-text{font-family:'Noto Serif SC',serif;font-size:15px;font-weight:700;letter-spacing:0.02em;}
+.logo-ver{font-size:10px;color:var(--gold);background:var(--gold-bg);padding:1px 6px;border-radius:3px;margin-left:4px;font-family:'DM Mono',monospace;}
+.hstats{display:flex;gap:20px;align-items:center;}
+.hstat{text-align:right;}
+.hstat-num{font-family:'DM Mono',monospace;font-size:17px;font-weight:500;color:var(--gold);line-height:1;}
+.hstat-label{font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-top:1px;}
+.hdiv{width:1px;height:28px;background:var(--border);}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:192px 1fr;flex:1;height:calc(100vh - 54px);}
+
+/* ── Sidebar ── */
+aside{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:14px 0;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--text3);padding:0 14px 7px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:background 0.1s,color 0.1s;border-left:2px solid transparent;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--bg3);color:var(--text);border-left-color:var(--nav-color,var(--gold));}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--nav-color,var(--gold));flex-shrink:0;}
+.nav-count{margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px;}
+.nav-div{height:1px;background:var(--border);margin:8px 0;}
+
+/* ── Main ── */
+main{overflow-y:auto;display:flex;flex-direction:column;}
+.toolbar{padding:12px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--bg);position:sticky;top:0;z-index:10;}
+.search-wrap{flex:1;position:relative;}
+.search-input{width:100%;padding:7px 12px 7px 32px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:'Sora',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:var(--gold);}
+.sicon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none;}
+.btn{padding:7px 14px;border:none;border-radius:var(--radius);font-size:12px;font-family:'Sora',sans-serif;cursor:pointer;font-weight:500;transition:opacity 0.12s,transform 0.1s;white-space:nowrap;}
+.btn:active{transform:scale(0.97);}
+.btn-gold{background:var(--gold);color:#0f0e0c;}
+.btn-gold:hover{opacity:0.88;}
+.btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-green{background:var(--green-bg);color:var(--green);border:1px solid rgba(58,154,92,0.25);}
+.btn-green:hover{background:rgba(58,154,92,0.2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* ── Cards ── */
+.cards-area{padding:18px 22px;flex:1;}
+.area-heading{font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+
+/* ── Prompt Card ── */
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:border-color 0.15s,transform 0.15s;overflow:hidden;display:flex;flex-direction:column;}
+.pcard:hover{border-color:var(--border2);transform:translateY(-2px);}
+.pcard-accent{height:3px;background:var(--pcolor,var(--gold));}
+.pcard-top{padding:12px 14px 9px;flex:1;}
+.pcard-scene{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:0.08em;color:var(--pcolor,var(--gold));text-transform:uppercase;margin-bottom:6px;}
+.pcard-sdot{width:4px;height:4px;border-radius:50%;background:var(--pcolor,var(--gold));}
+.pcard-title{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:7px;}
+.pcard-preview{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);line-height:1.6;background:var(--bg3);border-radius:5px;padding:8px 10px;max-height:64px;overflow:hidden;position:relative;white-space:pre-wrap;}
+.pcard-preview::after{content:'';position:absolute;bottom:0;left:0;right:0;height:22px;background:linear-gradient(transparent,var(--bg3));}
+.pcard-bottom{padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.pcard-tags{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0;}
+.tag{font-size:10px;padding:2px 6px;border-radius:8px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);white-space:nowrap;}
+.pcard-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.qbadge{font-size:10px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:3px;font-weight:500;}
+.q-expert{background:rgba(200,151,58,0.15);color:var(--gold);}
+.q-advanced{background:rgba(43,111,160,0.15);color:#5ba0d0;}
+.q-basic{background:rgba(90,85,80,0.2);color:var(--text3);}
+.use-indicator{display:flex;align-items:center;gap:3px;font-size:10px;font-family:'DM Mono',monospace;}
+.use-dot{width:5px;height:5px;border-radius:50%;}
+.dot-good{background:var(--green);}
+.dot-ok{background:var(--gold);}
+.dot-improve{background:var(--red);}
+.dot-none{background:var(--text3);}
+.pcard-actions{display:flex;gap:3px;opacity:0;transition:opacity 0.15s;}
+.pcard:hover .pcard-actions{opacity:1;}
+.icon-btn{width:22px;height:22px;border:none;background:var(--bg3);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);transition:background 0.1s,color 0.1s;}
+.icon-btn:hover{background:var(--border2);color:var(--text);}
+.icon-btn.danger:hover{background:var(--red-bg);color:#e06060;}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:70px 40px;color:var(--text3);}
+.empty-icon{font-size:36px;margin-bottom:14px;opacity:0.25;}
+.empty-title{font-family:'Noto Serif SC',serif;font-size:16px;margin-bottom:7px;color:var(--text2);}
+.empty-desc{font-size:12.5px;line-height:1.7;}
+
+/* ── Overlay / Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);width:100%;max-height:92vh;overflow-y:auto;transform:translateY(14px);transition:transform 0.2s;}
+.overlay.open .modal{transform:translateY(0);}
+.modal-wide{max-width:900px;}
+.modal-mid{max-width:620px;}
+.modal-sm{max-width:420px;}
+.mhdr{padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mtitle{font-family:'Noto Serif SC',serif;font-size:15px;font-weight:700;color:var(--text);}
+.mbody{padding:18px 20px;}
+.mftr{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* ── Form ── */
+.fg{margin-bottom:13px;}
+.flabel{display:block;font-size:10px;font-weight:600;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;}
+.finput,.ftextarea,.fselect{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:12.5px;font-family:'Sora',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.finput::placeholder,.ftextarea::placeholder{color:var(--text3);}
+.finput:focus,.ftextarea:focus,.fselect:focus{border-color:var(--gold);}
+.ftextarea{font-family:'DM Mono',monospace;font-size:12px;resize:vertical;min-height:120px;line-height:1.7;}
+.fselect{cursor:pointer;}
+.fselect option{background:var(--bg3);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── Add modal: two-column layout ── */
+.add-layout{display:grid;grid-template-columns:1fr 280px;gap:0;}
+.add-left{padding:18px 20px;border-right:1px solid var(--border);overflow-y:auto;max-height:calc(92vh - 120px);}
+.add-right{padding:16px;overflow-y:auto;max-height:calc(92vh - 120px);background:var(--bg3);}
+.panel-title{font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--gold);text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+
+/* ── Structure chips ── */
+.schips{display:flex;gap:5px;flex-wrap:wrap;}
+.schip{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all 0.1s;}
+.schip:hover{border-color:var(--gold);color:var(--gold);}
+.schip.on{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
+
+/* ── Principles panel ── */
+.principle-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:7px;font-size:11.5px;color:var(--text2);line-height:1.6;cursor:pointer;transition:border-color 0.1s;}
+.principle-item:hover{border-color:var(--gold);}
+.principle-item .pi-tag{font-size:9px;color:var(--gold);font-family:'DM Mono',monospace;margin-bottom:3px;display:block;}
+.add-principle-wrap{display:flex;gap:6px;margin-top:8px;}
+.add-principle-wrap input{flex:1;padding:6px 9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:11.5px;font-family:'Sora',sans-serif;color:var(--text);outline:none;}
+.add-principle-wrap input:focus{border-color:var(--gold);}
+.add-principle-wrap input::placeholder{color:var(--text3);}
+
+/* ── AI Polish: iterative compare ── */
+.polish-wrap{margin-bottom:14px;}
+.polish-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.polish-badge{font-size:10px;font-weight:600;color:#0f0e0c;background:var(--gold);padding:2px 7px;border-radius:3px;letter-spacing:0.04em;}
+.polish-desc{font-size:11.5px;color:var(--text3);}
+.polish-input{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Sora',sans-serif;color:var(--text);outline:none;resize:vertical;min-height:62px;line-height:1.6;transition:border-color 0.15s;}
+.polish-input::placeholder{color:var(--text3);}
+.polish-input:focus{border-color:var(--gold);}
+.polish-actions{display:flex;gap:7px;margin-top:7px;align-items:center;}
+.btn-polish{padding:7px 14px;font-size:12px;background:var(--gold-bg);color:var(--gold);border:1px solid rgba(200,151,58,0.3);border-radius:var(--radius);cursor:pointer;font-family:'Sora',sans-serif;font-weight:500;transition:background 0.15s;}
+.btn-polish:hover{background:var(--gold-bg2);}
+.btn-polish:disabled{opacity:0.5;cursor:not-allowed;}
+.polish-round-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+/* compare grid */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare-col{display:flex;flex-direction:column;gap:6px;}
+.compare-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+.label-old{color:var(--text3);}
+.label-new{color:var(--green);}
+.compare-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);line-height:1.65;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;white-space:pre-wrap;flex:1;min-height:100px;}
+.compare-text.is-new{border-color:rgba(58,154,92,0.3);}
+.compare-actions{display:flex;gap:6px;margin-top:4px;}
+
+/* ── Refinement question ── */
+.refine-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;margin-top:10px;}
+.refine-q{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.55;}
+.refine-q strong{color:var(--gold);}
+.refine-input{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Sora',sans-serif;color:var(--text);outline:none;transition:border-color 0.15s;}
+.refine-input::placeholder{color:var(--text3);}
+.refine-input:focus{border-color:var(--gold);}
+
+/* ── Detail modal ── */
+.detail-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.detail-scene{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+.detail-prompt{font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.75;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;color:var(--text);white-space:pre-wrap;margin-bottom:13px;}
+.detail-struct{margin-bottom:12px;}
+.detail-struct-label{font-size:10px;font-weight:600;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:6px;}
+.detail-why{background:var(--bg3);border-left:2px solid var(--gold);padding:9px 13px;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.65;}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.stat-card{background:var(--bg3);border-radius:var(--radius);padding:9px 12px;text-align:center;}
+.stat-card-num{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
+.stat-card-label{font-size:10px;color:var(--text3);margin-top:3px;}
+.detail-actions{display:flex;gap:7px;align-items:center;}
+.copy-ok{font-size:11px;color:var(--green);font-weight:500;display:none;}
+.use-history{margin-top:14px;}
+.uh-title{font-size:10px;font-weight:600;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin-bottom:7px;}
+.uh-list{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;}
+.uh-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.uh-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ── Rating modal ── */
+.rating-wrap{display:flex;flex-direction:column;gap:8px;margin:4px 0;}
+.rating-btn{padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;font-family:'Sora',sans-serif;display:flex;align-items:center;gap:10px;transition:all 0.15s;background:var(--bg3);color:var(--text);}
+.rating-btn:hover{border-color:var(--border3);}
+.rating-btn.r-good:hover{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.rating-btn.r-ok:hover{background:var(--gold-bg);border-color:var(--gold);color:var(--gold);}
+.rating-btn.r-improve:hover{background:var(--red-bg);border-color:var(--red);color:#e06060;}
+.rating-icon{font-size:16px;}
+.rating-label{font-weight:500;}
+.rating-desc{font-size:11px;color:var(--text3);margin-left:auto;}
+
+/* ── Spinner ── */
+.spinner{display:inline-block;width:12px;height:12px;border:1.5px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:10px 16px;border-radius:var(--radius);font-size:12.5px;z-index:300;transform:translateY(50px);opacity:0;transition:transform 0.25s,opacity 0.25s;border-left:2px solid var(--gold);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 700px) {
+  header{padding:0 14px;height:50px;}
+  .hstats{gap:10px;}
+  .hstat-num{font-size:14px;}
+  .hstat-label{display:none;}
+  .hdiv{height:18px;}
+  .layout{grid-template-columns:1fr;height:auto;min-height:calc(100vh - 50px);}
+  aside{display:none;position:fixed;inset:0;z-index:40;height:100vh;width:240px;transform:translateX(-100%);transition:transform 0.25s;padding-bottom:40px;}
+  aside.open{display:block;transform:translateX(0);}
+  .aside-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:39;}
+  .aside-overlay.open{display:block;}
+  .mobile-menu-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;font-size:14px;color:var(--text2);margin-right:6px;}
+  .toolbar{padding:10px 12px;gap:6px;}
+  .cards-area{padding:12px;}
+  .cards-grid{grid-template-columns:1fr;}
+  .modal-wide{max-width:100%;margin:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:fixed;bottom:0;left:0;right:0;max-height:95vh;}
+  .modal-mid{max-width:100%;margin:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:fixed;bottom:0;left:0;right:0;max-height:95vh;}
+  .modal-sm{max-width:100%;margin:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0;position:fixed;bottom:0;left:0;right:0;}
+  .overlay{align-items:flex-end;padding:0;}
+  .add-layout{grid-template-columns:1fr;}
+  .add-left{border-right:none;border-bottom:1px solid var(--border);max-height:none;}
+  .add-right{max-height:260px;}
+  .frow{grid-template-columns:1fr;}
+  .compare-grid{grid-template-columns:1fr;}
+  .detail-stats{grid-template-columns:repeat(3,1fr);}
+  .hstat:nth-child(n+7){display:none;}
+  .toast{bottom:12px;right:12px;left:12px;text-align:center;}
+}
+/* ── API Provider Cards ── */
+.api-pcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 6px;cursor:pointer;text-align:center;transition:border-color 0.15s,background 0.15s;}
+.api-pcard:hover{border-color:var(--border2);background:var(--bg4);}
+.api-pcard.active{border-color:var(--gold);background:var(--gold-bg);}
+.api-pcard-icon{font-size:16px;line-height:1;margin-bottom:4px;}
+.api-pcard-name{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.api-pcard.active .api-pcard-name{color:var(--gold);}
+.model-chip{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.1s;white-space:nowrap;}
+.model-chip:hover{border-color:var(--gold);color:var(--gold);}
+.model-chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
+@media(max-width:700px){#api-provider-grid{grid-template-columns:repeat(3,1fr)!important;}}
+.btn-guide{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1px solid rgba(200,151,58,0.4);border-radius:var(--radius);background:var(--gold-bg);cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:500;color:var(--gold);transition:background 0.15s,border-color 0.15s,transform 0.1s;white-space:nowrap;}
+.btn-guide:hover{background:var(--gold-bg2);border-color:rgba(200,151,58,0.7);}
+.btn-guide:active{transform:scale(0.97);}
+.btn-guide-icon{font-size:14px;line-height:1;opacity:0.9;}
+.btn-guide-text{letter-spacing:0.01em;}
+@media(max-width:700px){.btn-guide-text{display:none;}.btn-guide{padding:6px 9px;}}
+.guide-tab{padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;color:var(--text3);transition:color 0.15s,border-color 0.15s;white-space:nowrap;}
+.guide-tab:hover{color:var(--text);}
+.guide-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.guide-panel{animation:fadeIn 0.15s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* feature rows */
+.g-feature-row{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);}
+.g-feat-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace;}
+.g-feat-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.g-feat-desc{font-size:11.5px;color:var(--text2);line-height:1.6;}
+
+/* steps */
+.g-step{display:flex;gap:14px;padding-left:4px;padding-bottom:18px;border-left:1px dashed var(--border2);margin-left:13px;}
+.g-step-num{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gold);flex-shrink:0;margin-left:-14px;}
+.g-step-body{padding-top:2px;padding-bottom:4px;}
+.g-step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.g-step-opt{font-size:10px;color:var(--text3);font-weight:400;}
+.g-step-desc{font-size:11.5px;color:var(--text2);line-height:1.7;}
+
+/* five elements */
+.g-element-card{display:flex;gap:12px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);}
+.g-elem-num{width:24px;height:24px;border-radius:4px;background:var(--gold-bg);border:1px solid rgba(200,151,58,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--gold);font-weight:700;flex-shrink:0;margin-top:1px;}
+.g-elem-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.g-elem-sub{font-size:10px;color:var(--text3);font-weight:400;font-family:'DM Mono',monospace;margin-left:5px;}
+.g-elem-desc{font-size:11.5px;color:var(--text2);margin-bottom:6px;line-height:1.6;}
+.g-elem-example{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text3);background:var(--bg);border-radius:4px;padding:6px 9px;line-height:1.6;border-left:2px solid var(--border2);}
+
+/* ai steps */
+.g-ai-step{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);}
+.g-ai-badge{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;background:var(--gold);color:#0f0e0c;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-top:1px;}
+.g-ai-text{font-size:12px;color:var(--text2);line-height:1.65;}
+.g-api-chip{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;}
+
+/* tips */
+.g-tip-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;}
+.g-tip-tag{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gold);letter-spacing:0.1em;margin-bottom:5px;}
+.g-tip-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.g-tip-body{display:flex;flex-direction:column;gap:5px;}
+.g-tip-bad{font-size:11.5px;color:var(--red);font-family:'DM Mono',monospace;line-height:1.5;}
+.g-tip-good{font-size:11.5px;color:var(--green);font-family:'DM Mono',monospace;line-height:1.5;}
+
+@media(max-width:700px){
+  .guide-tab{padding:8px 10px;font-size:11px;}
+  .g-hero-card ~ .g-hero-card{margin-top:0;}
+  #g-intro > div:first-child{grid-template-columns:1fr;}
+  .g-api-chip-grid{grid-template-columns:1fr 1fr !important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:0;">
+    <div class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleSidebar()">☰</div>
+    <div class="logo">
+    <div class="logo-mark">P</div>
+    <div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="logo-text">Prompt 框架库</span>
+        <span class="logo-ver">v3</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-top:1px;">PROMPT FRAMEWORK LIBRARY</div>
+    </div>
+  </div>
+  </div>
+  <div class="hstats">
+    <div class="hstat"><div class="hstat-num" id="h-total">0</div><div class="hstat-label">总数</div></div>
+    <div class="hdiv"></div>
+    <div class="hstat"><div class="hstat-num" id="h-expert">0</div><div class="hstat-label">专家级</div></div>
+    <div class="hdiv"></div>
+    <div class="hstat"><div class="hstat-num" id="h-used">0</div><div class="hstat-label">已使用</div></div>
+    <div class="hdiv"></div>
+    <div class="hstat"><div class="hstat-num" id="h-principles">0</div><div class="hstat-label">原则数</div></div>
+  </div>
+</header>
+
+<div class="aside-overlay" id="aside-overlay" onclick="toggleSidebar()"></div>
+<div class="layout">
+  <aside>
+    <div class="nav-label">场景</div>
+    <div class="nav-item active" style="--nav-color:#c8973a" data-f="all" onclick="setFilter('all',this)">
+      <div class="nav-dot" style="background:#c8973a"></div>全部
+      <span class="nav-count" id="nc-all">0</span>
+    </div>
+    <div class="nav-div"></div>
+    <div id="scene-nav"></div>
+    <div class="nav-div"></div>
+    <div class="nav-label">视图</div>
+    <div class="nav-item" onclick="filterByRating('好用')"><div class="nav-dot" style="background:var(--green)"></div>好用的</div>
+    <div class="nav-item" onclick="filterByRating('需改进')"><div class="nav-dot" style="background:var(--red)"></div>需改进</div>
+    <div class="nav-div"></div>
+    <div class="nav-label">操作</div>
+    <div class="nav-item" onclick="openAdd()"><div class="nav-dot" style="background:var(--text3)"></div>新增 Prompt</div>
+    <div class="nav-item" onclick="openPrinciples()"><div class="nav-dot" style="background:var(--text3)"></div>管理原则库</div>
+    <div class="nav-item" onclick="exportAll()"><div class="nav-dot" style="background:var(--text3)"></div>导出备份</div>
+    <div class="nav-item" onclick="triggerImport()"><div class="nav-dot" style="background:var(--text3)"></div>导入备份</div>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importBackup(this)">
+    <div class="nav-div"></div>
+    <div class="nav-item" id="nav-api" onclick="openApiSettings()">
+      <div class="nav-dot" id="api-status-dot" style="background:var(--text3)"></div>
+      <span>API 设置</span>
+      <span id="api-status-label" style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)">未配置</span>
+    </div>
+  </aside>
+
+  <main>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="sicon">⌕</span>
+        <input class="search-input" id="search" type="text" placeholder="搜索标题、内容、标签、要素…" oninput="renderCards()">
+      </div>
+      <button class="btn-guide" onclick="openGuide()">
+        <span class="btn-guide-icon">◎</span>
+        <span class="btn-guide-text">使用指南</span>
+      </button>
+      <button class="btn btn-gold" onclick="openAdd()">+ 新增</button>
+    </div>
+    <div class="cards-area">
+      <div class="area-heading" id="area-heading">全部 Prompt</div>
+      <div class="cards-grid" id="grid"></div>
+      <div class="empty" id="empty" style="display:none">
+        <div class="empty-icon">◈</div>
+        <div class="empty-title">还没有 Prompt</div>
+        <div class="empty-desc">点击「新增」开始构建你的专属框架库</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ ADD / EDIT MODAL ═══ -->
+<div class="overlay" id="m-add" onclick="maybeClose(event,'m-add')">
+<div class="modal modal-wide" onclick="event.stopPropagation()">
+  <div class="mhdr">
+    <div class="mtitle" id="m-add-title">新增 Prompt</div>
+    <button class="icon-btn" onclick="closeModal('m-add')">✕</button>
+  </div>
+  <div style="overflow:hidden;">
+  <div class="add-layout">
+
+    <!-- LEFT: form + AI polish -->
+    <div class="add-left">
+
+      <!-- AI Polish -->
+      <div class="polish-wrap">
+        <div class="polish-hdr">
+          <span class="polish-badge">AI 打磨</span>
+          <span class="polish-desc">描述场景，AI 帮你迭代打磨并对比每一轮</span>
+        </div>
+        <textarea class="polish-input" id="polish-input" placeholder="描述你的使用场景或粗糙想法…&#10;例：我需要分析一支港股的投资价值，重点关注基本面和估值"></textarea>
+        <div class="polish-actions">
+          <button class="btn-polish" id="polish-btn" onclick="doPolish()">▶ 生成 / 再迭代</button>
+          <span class="polish-round-label" id="round-label"></span>
+          <button class="btn btn-ghost btn-sm" id="btn-tweak" style="display:none" onclick="showRefineBox()">提出修改意见</button>
+        </div>
+
+        <!-- Refine question box -->
+        <div class="refine-box" id="refine-box" style="display:none">
+          <div class="refine-q" id="refine-q"></div>
+          <input class="refine-input" id="refine-input" placeholder="输入你的回答或修改方向…" onkeydown="if(event.key==='Enter')doPolish()">
+        </div>
+
+        <!-- Compare grid -->
+        <div class="compare-grid" id="compare-grid" style="display:none">
+          <div class="compare-col">
+            <div class="compare-label label-old" id="col-old-label">上一版本</div>
+            <div class="compare-text" id="col-old"></div>
+          </div>
+          <div class="compare-col">
+            <div class="compare-label label-new">新版本 ✦</div>
+            <div class="compare-text is-new" id="col-new"></div>
+            <div class="compare-actions">
+              <button class="btn btn-green btn-sm" onclick="useNewVersion()">使用新版本 ↓</button>
+              <button class="btn btn-ghost btn-sm" onclick="useOldVersion()">保留旧版本</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:0 0 13px;">
+
+      <!-- Structure chips -->
+      <div class="fg">
+        <label class="flabel">包含的要素</label>
+        <div class="schips" id="schips">
+          <span class="schip" data-v="角色设定" onclick="toggleChip(this)">① 角色设定</span>
+          <span class="schip" data-v="背景约束" onclick="toggleChip(this)">② 背景约束</span>
+          <span class="schip" data-v="任务指令" onclick="toggleChip(this)">③ 任务指令</span>
+          <span class="schip" data-v="输出格式" onclick="toggleChip(this)">④ 输出格式</span>
+          <span class="schip" data-v="质量标准" onclick="toggleChip(this)">⑤ 质量标准</span>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">标题</label>
+        <input class="finput" id="f-title" placeholder="为这个 Prompt 框架命名">
+      </div>
+      <div class="fg">
+        <label class="flabel">Prompt 内容</label>
+        <textarea class="ftextarea" id="f-content" placeholder="完整的 Prompt 框架内容…&#10;&#10;建议包含：角色设定 / 背景约束 / 任务指令 / 输出格式 / 质量标准"></textarea>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">场景</label>
+          <div style="display:flex;gap:6px;">
+            <select class="fselect" id="f-scene" style="flex:1;" onchange="handleSceneSelect(this)"></select>
+          </div>
+          <input class="finput" id="f-scene-custom" placeholder="输入新场景名称…" style="display:none;margin-top:6px;">
+        </div>
+        <div class="fg">
+          <label class="flabel">质量层级</label>
+          <select class="fselect" id="f-quality">
+            <option>专家级</option><option>进阶级</option><option>基础级</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">标签（逗号分隔）</label>
+          <input class="finput" id="f-tags" placeholder="邮件, 说服, 商务">
+        </div>
+        <div class="fg">
+          <label class="flabel">为什么有效（可选）</label>
+          <input class="finput" id="f-why" placeholder="核心原因">
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: principles panel -->
+    <div class="add-right">
+      <div class="panel-title">我的原则库</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6;">点击任意原则，将其追加到 Prompt 内容末尾</div>
+      <div id="principles-list-inline">
+        <div style="font-size:11.5px;color:var(--text3);text-align:center;padding:20px 0;">还没有原则<br>在下方添加第一条</div>
+      </div>
+      <div class="add-principle-wrap">
+        <input id="new-principle-inline" placeholder="记录一条新原则…" onkeydown="if(event.key==='Enter')addPrincipleInline()">
+        <button class="btn btn-gold btn-sm" onclick="addPrincipleInline()">+</button>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 10px;">
+      <div class="panel-title">五要素速查</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.8;">
+        <div><span style="color:var(--gold)">①</span> 角色设定 — 你是一位…</div>
+        <div><span style="color:var(--gold)">②</span> 背景约束 — 情境/限制/受众</div>
+        <div><span style="color:var(--gold)">③</span> 任务指令 — 具体做什么/步骤</div>
+        <div><span style="color:var(--gold)">④</span> 输出格式 — 结构/长度/语气</div>
+        <div><span style="color:var(--gold)">⑤</span> 质量标准 — 评判好坏的标准</div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+  <div class="mftr">
+    <button class="btn btn-ghost" onclick="closeModal('m-add')">取消</button>
+    <button class="btn btn-gold" onclick="savePrompt()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ DETAIL MODAL ═══ -->
+<div class="overlay" id="m-detail" onclick="maybeClose(event,'m-detail')">
+<div class="modal modal-mid" onclick="event.stopPropagation()">
+  <div class="mhdr">
+    <div class="mtitle" id="d-title"></div>
+    <button class="icon-btn" onclick="closeModal('m-detail')">✕</button>
+  </div>
+  <div class="mbody">
+    <div class="detail-meta">
+      <div class="detail-scene" id="d-scene"></div>
+      <div id="d-quality"></div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)" id="d-date"></div>
+    </div>
+    <div class="detail-stats">
+      <div class="stat-card"><div class="stat-card-num" id="ds-uses" style="color:var(--gold)">0</div><div class="stat-card-label">使用次数</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="ds-good" style="color:var(--green)">0</div><div class="stat-card-label">好用</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="ds-improve" style="color:var(--red)">0</div><div class="stat-card-label">需改进</div></div>
+    </div>
+    <div class="detail-struct" id="d-struct"></div>
+    <div class="detail-prompt" id="d-content"></div>
+    <div class="detail-why" id="d-why" style="display:none"></div>
+    <div class="detail-actions">
+      <button class="btn btn-gold" onclick="copyAndRate()">复制 Prompt</button>
+      <button class="btn btn-ghost" onclick="editDetail()">编辑</button>
+      <span class="copy-ok" id="copy-ok">已复制 ✓</span>
+    </div>
+    <div class="use-history" id="use-history" style="display:none">
+      <div class="uh-title">使用记录</div>
+      <div class="uh-list" id="uh-list"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ RATING MODAL ═══ -->
+<div class="overlay" id="m-rate" onclick="maybeClose(event,'m-rate')">
+<div class="modal modal-sm" onclick="event.stopPropagation()">
+  <div class="mhdr">
+    <div class="mtitle">这次使用效果如何？</div>
+    <button class="icon-btn" onclick="closeModal('m-rate')">跳过</button>
+  </div>
+  <div class="mbody">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">你的反馈帮助这条 Prompt 持续进化</div>
+    <div class="rating-wrap">
+      <button class="rating-btn r-good" onclick="submitRating('好用')">
+        <span class="rating-icon">◆</span>
+        <span class="rating-label">好用</span>
+        <span class="rating-desc">达到预期，直接有效</span>
+      </button>
+      <button class="rating-btn r-ok" onclick="submitRating('一般')">
+        <span class="rating-icon">◇</span>
+        <span class="rating-label">一般</span>
+        <span class="rating-desc">基本可用，还需微调</span>
+      </button>
+      <button class="rating-btn r-improve" onclick="submitRating('需改进')">
+        <span class="rating-icon">△</span>
+        <span class="rating-label">需改进</span>
+        <span class="rating-desc">效果不理想，需要重写</span>
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ PRINCIPLES MANAGE MODAL ═══ -->
+<div class="overlay" id="m-principles" onclick="maybeClose(event,'m-principles')">
+<div class="modal modal-sm" onclick="event.stopPropagation()">
+  <div class="mhdr">
+    <div class="mtitle">我的原则库</div>
+    <button class="icon-btn" onclick="closeModal('m-principles')">✕</button>
+  </div>
+  <div class="mbody">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6;">记录你在使用 AI 过程中总结出的规律和原则，新增 Prompt 时随时参考。</div>
+    <div id="principles-manage-list"></div>
+    <div class="add-principle-wrap" style="margin-top:10px;">
+      <input id="new-principle-manage" placeholder="记录一条新原则…" onkeydown="if(event.key==='Enter')addPrincipleManage()">
+      <button class="btn btn-gold btn-sm" onclick="addPrincipleManage()">添加</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ GUIDE MODAL ═══ -->
+<div class="overlay" id="m-guide" onclick="maybeClose(event,'m-guide')">
+<div class="modal modal-wide" onclick="event.stopPropagation()" style="max-width:780px;">
+  <div class="mhdr">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0f0e0c;font-family:'DM Mono',monospace;flex-shrink:0;">P</div>
+      <div>
+        <div class="mtitle">Prompt 框架库 · 使用指南</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;letter-spacing:0.06em;">5 分钟上手，终身受益</div>
+      </div>
+    </div>
+    <button class="icon-btn" onclick="closeModal('m-guide');markGuideSeen()">✕</button>
+  </div>
+
+  <!-- Tab nav -->
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;background:var(--bg2);">
+    <button class="guide-tab active" data-tab="g-intro" onclick="switchGuideTab(this,'g-intro')">产品介绍</button>
+    <button class="guide-tab" data-tab="g-workflow" onclick="switchGuideTab(this,'g-workflow')">使用流程</button>
+    <button class="guide-tab" data-tab="g-five" onclick="switchGuideTab(this,'g-five')">五要素框架</button>
+    <button class="guide-tab" data-tab="g-ai" onclick="switchGuideTab(this,'g-ai')">AI 打磨</button>
+    <button class="guide-tab" data-tab="g-tips" onclick="switchGuideTab(this,'g-tips')">进阶技巧</button>
+  </div>
+
+  <div class="mbody" style="padding:0;max-height:68vh;overflow-y:auto;">
+
+    <!-- ① 产品介绍 -->
+    <div class="guide-panel" id="g-intro" style="padding:22px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="g-hero-card" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;border-top:3px solid var(--gold);">
+          <div style="font-size:22px;margin-bottom:8px;">◈</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">这是什么？</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.75;">一个运行在本地浏览器的 <strong style="color:var(--text)">Prompt 框架管理工具</strong>。帮你把每次调教 AI 的好 Prompt 沉淀下来，形成你专属的「提问方法论」。</div>
+        </div>
+        <div class="g-hero-card" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;border-top:3px solid var(--blue);">
+          <div style="font-size:22px;margin-bottom:8px;">◇</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">解决什么问题？</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.75;">每次用 AI 都要重新想怎么提问？好的 Prompt 用完就丢了？这里帮你<strong style="color:var(--text)">存、用、迭代</strong>，越用越好。</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;">核心功能一览</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="g-feature-row">
+          <div class="g-feat-icon" style="background:var(--gold-bg);color:var(--gold);">库</div>
+          <div><div class="g-feat-title">Prompt 框架库</div><div class="g-feat-desc">按场景分类存储，支持标签、搜索、质量层级标注，随时取用。</div></div>
+        </div>
+        <div class="g-feature-row">
+          <div class="g-feat-icon" style="background:var(--blue-bg);color:var(--blue);">磨</div>
+          <div><div class="g-feat-title">AI 打磨（需配置 API）</div><div class="g-feat-desc">描述你的需求，AI 帮你生成并多轮迭代优化，每轮可对比新旧版本。</div></div>
+        </div>
+        <div class="g-feature-row">
+          <div class="g-feat-icon" style="background:var(--green-bg);color:var(--green);">则</div>
+          <div><div class="g-feat-title">原则库</div><div class="g-feat-desc">记录你总结的 Prompt 规律，新增时随时参考，积累个人方法论。</div></div>
+        </div>
+        <div class="g-feature-row">
+          <div class="g-feat-icon" style="background:rgba(122,91,176,0.12);color:#a07bd0;">评</div>
+          <div><div class="g-feat-title">使用反馈</div><div class="g-feat-desc">每次复制后评分（好用 / 一般 / 需改进），追踪哪些框架真正有效。</div></div>
+        </div>
+        <div class="g-feature-row">
+          <div class="g-feat-icon" style="background:rgba(192,64,64,0.1);color:#d07070;">份</div>
+          <div><div class="g-feat-title">导入 / 导出</div><div class="g-feat-desc">数据存本地浏览器，可随时导出 JSON 备份，换设备时导入恢复。</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 使用流程 -->
+    <div class="guide-panel" id="g-workflow" style="display:none;padding:22px 24px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:18px;line-height:1.7;">推荐的完整使用路径，从零开始到建立自己的方法论。</div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <div class="g-step">
+          <div class="g-step-num">01</div>
+          <div class="g-step-body">
+            <div class="g-step-title">配置 API <span class="g-step-opt">（可选，用于 AI 打磨）</span></div>
+            <div class="g-step-desc">侧边栏底部「API 设置」→ 选择服务商 → 填入 Key → 连接测试。不配置也可以手动编写 Prompt。</div>
+          </div>
+        </div>
+
+        <div class="g-step">
+          <div class="g-step-num">02</div>
+          <div class="g-step-body">
+            <div class="g-step-title">新增你的第一条 Prompt</div>
+            <div class="g-step-desc">点右上角「+ 新增」，在 AI 打磨区输入需求，或直接在内容框手写框架。选择场景、打上标签、标注质量层级。</div>
+          </div>
+        </div>
+
+        <div class="g-step">
+          <div class="g-step-num">03</div>
+          <div class="g-step-body">
+            <div class="g-step-title">使用并评分</div>
+            <div class="g-step-desc">点卡片打开详情 → 点「复制 Prompt」→ 粘贴到 AI 工具使用 → 回来给效果评分（好用 / 一般 / 需改进）。</div>
+          </div>
+        </div>
+
+        <div class="g-step">
+          <div class="g-step-num">04</div>
+          <div class="g-step-body">
+            <div class="g-step-title">迭代改进</div>
+            <div class="g-step-desc">对「需改进」的 Prompt，点编辑 → 在 AI 打磨区提出修改意见 → 对比新旧版本 → 保存最佳版本。</div>
+          </div>
+        </div>
+
+        <div class="g-step" style="border-left-color:transparent;">
+          <div class="g-step-num" style="background:var(--gold);color:#0f0e0c;">★</div>
+          <div class="g-step-body">
+            <div class="g-step-title">沉淀原则</div>
+            <div class="g-step-desc">用了一段时间后，把反复有效的技巧记录到「原则库」，下次写 Prompt 时一键追加，形成你的专属方法论。</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ③ 五要素框架 -->
+    <div class="guide-panel" id="g-five" style="display:none;padding:22px 24px;">
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:18px;background:var(--bg3);padding:12px 15px;border-radius:var(--radius);border-left:2px solid var(--gold);">
+        本库使用「<strong style="color:var(--gold)">五要素框架</strong>」组织所有 Prompt。不是每条都要包含全部五项，而是按需取舍——要素越完整，AI 的输出越可预测。
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="g-element-card">
+          <div class="g-elem-num">①</div>
+          <div>
+            <div class="g-elem-title">角色设定 <span class="g-elem-sub">Role</span></div>
+            <div class="g-elem-desc">给 AI 赋予一个专业身份。身份越具体，输出越专业。</div>
+            <div class="g-elem-example">「你是一位拥有 15 年经验的价值投资分析师，深受巴菲特哲学影响」</div>
+          </div>
+        </div>
+        <div class="g-element-card">
+          <div class="g-elem-num">②</div>
+          <div>
+            <div class="g-elem-title">背景约束 <span class="g-elem-sub">Context</span></div>
+            <div class="g-elem-desc">提供情境、受众、限制条件。让 AI 知道「这是什么场景」。</div>
+            <div class="g-elem-example">「背景：我需要向董事会汇报，受众是非技术背景的高管，时间限制 10 分钟」</div>
+          </div>
+        </div>
+        <div class="g-element-card">
+          <div class="g-elem-num">③</div>
+          <div>
+            <div class="g-elem-title">任务指令 <span class="g-elem-sub">Task</span></div>
+            <div class="g-elem-desc">明确要做什么，最好用编号列出步骤。越具体越好。</div>
+            <div class="g-elem-example">「任务：1. 分析核心风险  2. 提出3个解决方案  3. 给出推荐理由」</div>
+          </div>
+        </div>
+        <div class="g-element-card">
+          <div class="g-elem-num">④</div>
+          <div>
+            <div class="g-elem-title">输出格式 <span class="g-elem-sub">Format</span></div>
+            <div class="g-elem-desc">指定结构、长度、语气。让输出结果开箱即用。</div>
+            <div class="g-elem-example">「输出格式：Markdown，含小标题，500 字以内，专业严谨语气，结尾附行动建议」</div>
+          </div>
+        </div>
+        <div class="g-element-card">
+          <div class="g-elem-num">⑤</div>
+          <div>
+            <div class="g-elem-title">质量标准 <span class="g-elem-sub">Quality</span></div>
+            <div class="g-elem-desc">告诉 AI「什么是好的输出」，这是最容易被忽略、也最有效的要素。</div>
+            <div class="g-elem-example">「质量标准：读完后受众能立刻理解下一步行动；风险分析篇幅不少于优势分析」</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ AI 打磨 -->
+    <div class="guide-panel" id="g-ai" style="display:none;padding:22px 24px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.7;">AI 打磨功能需要先在「API 设置」里配置好接口。配置后，你只需描述需求，AI 自动帮你生成并多轮打磨。</div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <div class="g-ai-step">
+          <div class="g-ai-badge">STEP 1</div>
+          <div class="g-ai-text"><strong style="color:var(--text)">描述你的场景</strong> — 不用完整，用粗糙语言描述「我想用 AI 做什么」就够了。</div>
+        </div>
+        <div class="g-ai-step">
+          <div class="g-ai-badge">STEP 2</div>
+          <div class="g-ai-text"><strong style="color:var(--text)">点「生成 / 再迭代」</strong> — AI 会按五要素框架生成第一版，自动填入内容框。</div>
+        </div>
+        <div class="g-ai-step">
+          <div class="g-ai-badge">STEP 3</div>
+          <div class="g-ai-text"><strong style="color:var(--text)">对比 + 提出修改意见</strong> — 第一版出来后，点「提出修改意见」，描述你觉得哪里不够好。</div>
+        </div>
+        <div class="g-ai-step">
+          <div class="g-ai-badge">STEP 4</div>
+          <div class="g-ai-text"><strong style="color:var(--text)">再次迭代</strong> — 每轮都能看到新旧版本对比，选择「使用新版本」或「保留旧版本」。</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;">支持的 API 服务商</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div class="g-api-chip"><span style="color:var(--gold)">◆</span> Claude (Anthropic)</div>
+        <div class="g-api-chip"><span style="color:#5ba0d0">◆</span> OpenAI (GPT)</div>
+        <div class="g-api-chip"><span style="color:#7a9a7a">◆</span> DeepSeek</div>
+        <div class="g-api-chip"><span style="color:#a07bd0">◆</span> Groq</div>
+        <div class="g-api-chip"><span style="color:var(--green)">◆</span> Ollama 本地</div>
+        <div class="g-api-chip"><span style="color:var(--text3)">◆</span> 任意兼容接口</div>
+      </div>
+    </div>
+
+    <!-- ⑤ 进阶技巧 -->
+    <div class="guide-panel" id="g-tips" style="display:none;padding:22px 24px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <div class="g-tip-card">
+          <div class="g-tip-tag">技巧 01</div>
+          <div class="g-tip-title">质量标准写「行为结果」，不写「形容词」</div>
+          <div class="g-tip-body">
+            <span class="g-tip-bad">✗ 差：「高质量、专业、详细」</span>
+            <span class="g-tip-good">✓ 好：「读完后受众能立刻知道下一步做什么」</span>
+          </div>
+        </div>
+
+        <div class="g-tip-card">
+          <div class="g-tip-tag">技巧 02</div>
+          <div class="g-tip-title">角色设定加年限或背景，效果立竿见影</div>
+          <div class="g-tip-body">
+            <span class="g-tip-bad">✗ 差：「你是一位分析师」</span>
+            <span class="g-tip-good">✓ 好：「你是一位拥有 12 年 A 股研究经验的卖方首席分析师」</span>
+          </div>
+        </div>
+
+        <div class="g-tip-card">
+          <div class="g-tip-tag">技巧 03</div>
+          <div class="g-tip-title">分析类任务必加「区分事实与推断」</div>
+          <div class="g-tip-body">
+            <div style="font-size:11.5px;color:var(--text2);line-height:1.65;">在任务指令末尾加上这一句，能显著提升分析类输出的可信度，减少 AI 编造数据。</div>
+          </div>
+        </div>
+
+        <div class="g-tip-card">
+          <div class="g-tip-tag">技巧 04</div>
+          <div class="g-tip-title">用 [ ] 标注变量，让框架可复用</div>
+          <div class="g-tip-body">
+            <div style="font-size:11.5px;color:var(--text2);line-height:1.65;">把每次变化的部分用方括号标注：<code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">[公司名称]</code>、<code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">[目标受众]</code>。这样同一个框架可以重复用于不同场景。</div>
+          </div>
+        </div>
+
+        <div class="g-tip-card">
+          <div class="g-tip-tag">技巧 05</div>
+          <div class="g-tip-title">效果不好？先看是哪个要素出了问题</div>
+          <div class="g-tip-body">
+            <div style="font-size:11.5px;color:var(--text2);line-height:1.65;">输出太泛 → 检查「任务指令」是否够具体<br>格式乱 → 检查「输出格式」是否明确<br>内容不专业 → 检查「角色设定」是否够细<br>验收困难 → 补充「质量标准」</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end mbody -->
+
+  <div class="mftr" style="justify-content:space-between;align-items:center;">
+    <label style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text3);cursor:pointer;">
+      <input type="checkbox" id="guide-no-show" style="accent-color:var(--gold);cursor:pointer;">
+      <span>不再自动弹出</span>
+    </label>
+    <button class="btn btn-gold" onclick="closeModal('m-guide');markGuideSeen()">开始使用 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ API SETTINGS MODAL ═══ -->
+<div class="overlay" id="m-api" onclick="maybeClose(event,'m-api')">
+<div class="modal modal-mid" onclick="event.stopPropagation()" style="max-width:660px;">
+  <div class="mhdr">
+    <div class="mtitle">API 设置</div>
+    <button class="icon-btn" onclick="closeModal('m-api')">✕</button>
+  </div>
+  <div class="mbody" style="padding:0;">
+
+    <!-- Provider grid -->
+    <div style="padding:16px 20px 14px;">
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;">选择服务商</div>
+      <div id="api-provider-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+    </div>
+
+    <!-- Selected provider info bar -->
+    <div id="api-provider-bar" style="padding:10px 20px;background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:none;align-items:center;gap:10px;">
+      <div id="apb-icon" style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div id="apb-name" style="font-size:12.5px;font-weight:600;color:var(--text);"></div>
+        <div id="apb-desc" style="font-size:11px;color:var(--text3);margin-top:1px;"></div>
+      </div>
+      <a id="apb-docs" href="#" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;flex-shrink:0;">查看文档 →</a>
+    </div>
+
+    <div style="padding:14px 20px 18px;">
+      <!-- API Key -->
+      <div class="fg">
+        <label class="flabel">API Key</label>
+        <div style="position:relative;">
+          <input class="finput" id="api-key-input" type="password" placeholder="粘贴你的 API Key…">
+          <button onclick="toggleApiKeyVisibility()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;" id="api-key-eye">👁</button>
+        </div>
+        <div id="api-key-hint" style="font-size:10px;color:var(--text3);margin-top:4px;"></div>
+      </div>
+
+      <!-- Base URL -->
+      <div class="fg">
+        <label class="flabel">API Base URL</label>
+        <input class="finput" id="api-base-input" placeholder="https://…">
+        <div id="api-base-hint" style="font-size:10px;color:var(--text3);margin-top:4px;"></div>
+      </div>
+
+      <!-- Model -->
+      <div class="fg">
+        <label class="flabel">模型</label>
+        <input class="finput" id="api-model-input" placeholder="输入或点选下方模型名…" style="margin-bottom:6px;">
+        <div id="api-model-chips" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Advanced collapsed -->
+      <div style="margin-bottom:10px;">
+        <div onclick="toggleApiAdvanced()" style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:11px;color:var(--text3);padding:5px 0;">
+          <span id="api-adv-arrow" style="font-size:9px;display:inline-block;transition:transform 0.15s;">▶</span>
+          <span>高级设置（协议 / 鉴权方式）</span>
+        </div>
+        <div id="api-advanced" style="display:none;margin-top:6px;padding:12px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);">
+          <div class="frow">
+            <div class="fg" style="margin-bottom:0;">
+              <label class="flabel">接口协议</label>
+              <select class="fselect" id="api-protocol-input">
+                <option value="anthropic">Anthropic（/v1/messages）</option>
+                <option value="openai">OpenAI 兼容（/v1/chat/completions）</option>
+                <option value="gemini">Google Gemini（generateContent）</option>
+              </select>
+            </div>
+            <div class="fg" style="margin-bottom:0;">
+              <label class="flabel">鉴权 Header</label>
+              <select class="fselect" id="api-auth-input">
+                <option value="bearer">Authorization: Bearer ···</option>
+                <option value="x-api-key">X-Api-Key: ···</option>
+                <option value="apikey">URL 参数 ?key=··· (Gemini)</option>
+                <option value="none">无需鉴权 (Ollama)</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.6;" id="api-adv-hint">选择服务商后自动填写，通常无需手动修改。</div>
+        </div>
+      </div>
+
+      <!-- Test result -->
+      <div id="api-test-result" style="display:none;padding:9px 12px;border-radius:var(--radius);font-size:12px;line-height:1.6;"></div>
+    </div>
+  </div>
+  <div class="mftr" style="justify-content:space-between;">
+    <button class="btn btn-ghost" id="api-test-btn" onclick="testApiConnection()">连接测试</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" onclick="clearApiSettings()">清除</button>
+      <button class="btn btn-ghost" onclick="closeModal('m-api')">取消</button>
+      <button class="btn btn-gold" onclick="saveApiSettings()">保存</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SK='pfl_v2';const PSK='pfl_principles';const SCENES=[
+  {name:'写作与表达',color:'#c0622a'},{name:'分析与决策',color:'#2b6fa0'},
+  {name:'学习与研究',color:'#2a7b5e'},{name:'头脑风暴',color:'#7a5bb0'},
+  {name:'投资分析',color:'#b84040'}
+];
+const QC={'专家级':'q-expert','进阶级':'q-advanced','基础级':'q-basic'};
+const RCOLOR={'好用':'var(--green)','一般':'var(--gold)','需改进':'var(--red)'};
+const RDOT={'好用':'dot-good','一般':'dot-ok','需改进':'dot-improve'};
+
+let data=[],principles=[],curFilter='all',editId=null,detailId=null,ratingTargetId=null;
+let polishHistory=[],polishRound=0;
+
+function load(){
+  try{data=JSON.parse(localStorage.getItem(SK))||[];}catch{data=[];}
+  try{principles=JSON.parse(localStorage.getItem(PSK))||[];}catch{principles=[];}
+}
+function save(){localStorage.setItem(SK,JSON.stringify(data));}
+function savePrinciples(){localStorage.setItem(PSK,JSON.stringify(principles));}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function fmt(ts){const d=new Date(ts);return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+function fmtTime(ts){const d=new Date(ts);return`${fmt(ts)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function sceneColor(s){return SCENES.find(x=>x.name===s)?.color||'#7a9a7a';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ── Nav / Render ── */
+function renderNav(){
+  // Build combined scene list: default + custom + any used in data
+  const defaultScenes=SCENES.map(s=>s.name);
+  const customScenes=getCustomScenes();
+  const dataScenes=[...new Set(data.map(p=>p.scene))].filter(s=>!defaultScenes.includes(s)&&!customScenes.includes(s));
+  const allCustom=[...customScenes,...dataScenes];
+
+  const counts={};
+  [...defaultScenes,...allCustom].forEach(s=>counts[s]=0);
+  data.forEach(p=>{if(counts[p.scene]!==undefined)counts[p.scene]++;else counts[p.scene]=1;});
+
+  document.getElementById('nc-all').textContent=data.length;
+  document.getElementById('h-total').textContent=data.length;
+  document.getElementById('h-expert').textContent=data.filter(p=>p.quality==='专家级').length;
+  document.getElementById('h-used').textContent=data.filter(p=>(p.uses||0)>0).length;
+  document.getElementById('h-principles').textContent=principles.length;
+
+  const defaultHtml=SCENES.map(s=>`
+    <div class="nav-item ${curFilter===s.name?'active':''}" style="--nav-color:${s.color}" data-f="${s.name}" onclick="setFilter('${s.name}',this)">
+      <div class="nav-dot" style="background:${s.color}"></div>${s.name}
+      <span class="nav-count">${counts[s.name]||0}</span>
+    </div>`).join('');
+
+  const customHtml=allCustom.map(s=>`
+    <div class="nav-item ${curFilter===s?'active':''}" style="--nav-color:#7a9a7a" data-f="${s}" onclick="setFilter('${esc(s)}',this)">
+      <div class="nav-dot" style="background:#7a9a7a"></div>${esc(s)}
+      <span class="nav-count">${counts[s]||0}</span>
+    </div>`).join('');
+
+  document.getElementById('scene-nav').innerHTML=defaultHtml+(allCustom.length?`<div class="nav-div"></div>${customHtml}`:'');
+}
+
+function setFilter(f,el){
+  curFilter=f;
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('area-heading').textContent=f==='all'?'全部 Prompt':f+' · 场景';
+  renderCards();
+  // close sidebar on mobile
+  if(window.innerWidth<=700){
+    document.querySelector('aside').classList.remove('open');
+    document.getElementById('aside-overlay').classList.remove('open');
+  }
+}
+
+function filterByRating(r){
+  curFilter='rating:'+r;
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('area-heading').textContent=(r==='好用'?'好用的':'需改进的')+' Prompt';
+  renderCards();
+}
+
+function getFiltered(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  let list=data;
+  if(curFilter.startsWith('rating:')){
+    const r=curFilter.split(':')[1];
+    list=data.filter(p=>(p.ratings||[]).some(x=>x.r===r));
+  } else if(curFilter!=='all'){
+    list=data.filter(p=>p.scene===curFilter);
+  }
+  if(q) list=list.filter(p=>p.title.toLowerCase().includes(q)||p.content.toLowerCase().includes(q)||(p.tags||[]).some(t=>t.toLowerCase().includes(q))||(p.structure||[]).some(s=>s.toLowerCase().includes(q)));
+  return list.sort((a,b)=>b.createdAt-a.createdAt);
+}
+
+function renderCards(){
+  const list=getFiltered();
+  const grid=document.getElementById('grid');
+  const empty=document.getElementById('empty');
+  if(!list.length){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=list.map(p=>{
+    const c=sceneColor(p.scene);
+    const tags=(p.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    const qc=QC[p.quality]||'q-basic';
+    const ratings=p.ratings||[];
+    const lastR=ratings.length?ratings[ratings.length-1].r:null;
+    const dotClass=lastR?RDOT[lastR]:'dot-none';
+    const useStr=(p.uses||0)>0?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)">${p.uses}次</span>`:'';
+    return`<div class="pcard" style="--pcolor:${c}" onclick="openDetail('${p.id}')">
+      <div class="pcard-accent"></div>
+      <div class="pcard-top">
+        <div class="pcard-scene"><div class="pcard-sdot"></div>${esc(p.scene)}</div>
+        <div class="pcard-title">${esc(p.title)}</div>
+        <div class="pcard-preview">${esc(p.content)}</div>
+      </div>
+      <div class="pcard-bottom">
+        <div class="pcard-tags">${tags}</div>
+        <div class="pcard-right">
+          <div class="pcard-actions">
+            <button class="icon-btn" onclick="event.stopPropagation();openEdit('${p.id}')">✎</button>
+            <button class="icon-btn danger" onclick="event.stopPropagation();del('${p.id}')">✕</button>
+          </div>
+          ${useStr}
+          <div class="use-indicator"><div class="use-dot ${dotClass}"></div></div>
+          <span class="qbadge ${qc}">${p.quality}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Add / Edit ── */
+function openAdd(){
+  editId=null;polishHistory=[];polishRound=0;
+  document.getElementById('m-add-title').textContent='新增 Prompt';
+  clearForm();rebuildSceneOptions();openModal('m-add');renderPrinciplesInline();
+  if(window.innerWidth<=700)toggleSidebar();
+}
+function openEdit(id){
+  const p=data.find(x=>x.id===id);if(!p)return;
+  editId=id;polishHistory=[];polishRound=0;
+  document.getElementById('m-add-title').textContent='编辑 Prompt';
+  rebuildSceneOptions();
+  // set scene: if custom, show input
+  const sel=document.getElementById('f-scene');
+  const knownScenes=Array.from(sel.options).map(o=>o.value).filter(v=>v!=='__custom__');
+  if(knownScenes.includes(p.scene)){
+    sel.value=p.scene;
+    document.getElementById('f-scene-custom').style.display='none';
+  } else {
+    sel.value='__custom__';
+    document.getElementById('f-scene-custom').style.display='block';
+    document.getElementById('f-scene-custom').value=p.scene;
+  }
+  document.getElementById('f-title').value=p.title;
+  document.getElementById('f-content').value=p.content;
+  document.getElementById('f-quality').value=p.quality||'基础级';
+  document.getElementById('f-tags').value=(p.tags||[]).join(', ');
+  document.getElementById('f-why').value=p.why||'';
+  document.querySelectorAll('.schip').forEach(c=>c.classList.toggle('on',(p.structure||[]).includes(c.dataset.v)));
+  resetPolishUI();openModal('m-add');renderPrinciplesInline();
+}
+function editDetail(){closeModal('m-detail');setTimeout(()=>openEdit(detailId),150);}
+function clearForm(){
+  ['f-title','f-content','f-tags','f-why','polish-input','refine-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const sel=document.getElementById('f-scene');
+  if(sel&&sel.options.length>0) sel.value=sel.options[0].value;
+  document.getElementById('f-scene-custom').style.display='none';
+  document.getElementById('f-scene-custom').value='';
+  document.getElementById('f-quality').value='基础级';
+  document.querySelectorAll('.schip').forEach(c=>c.classList.remove('on'));
+  resetPolishUI();
+}
+function resetPolishUI(){
+  document.getElementById('compare-grid').style.display='none';
+  document.getElementById('refine-box').style.display='none';
+  document.getElementById('btn-tweak').style.display='none';
+  document.getElementById('round-label').textContent='';
+  polishHistory=[];polishRound=0;
+}
+function toggleChip(el){el.classList.toggle('on');}
+function savePrompt(){
+  const title=document.getElementById('f-title').value.trim();
+  const content=document.getElementById('f-content').value.trim();
+  if(!title){alert('请填写标题');return;}
+  if(!content){alert('请填写 Prompt 内容');return;}
+  let scene=document.getElementById('f-scene').value;
+  if(scene==='__custom__'){
+    scene=document.getElementById('f-scene-custom').value.trim();
+    if(!scene){alert('请填写自定义场景名称');return;}
+    // persist custom scene
+    const customs=getCustomScenes();
+    if(!customs.includes(scene)){customs.push(scene);saveCustomScenes(customs);}
+  }
+  const quality=document.getElementById('f-quality').value;
+  const tags=document.getElementById('f-tags').value.split(/[,，]/).map(t=>t.trim()).filter(Boolean);
+  const why=document.getElementById('f-why').value.trim();
+  const structure=Array.from(document.querySelectorAll('.schip.on')).map(c=>c.dataset.v);
+  if(editId){
+    const idx=data.findIndex(x=>x.id===editId);
+    if(idx>-1)data[idx]={...data[idx],title,content,scene,quality,tags,why,structure};
+    toast('已更新');
+  } else {
+    data.push({id:uid(),title,content,scene,quality,tags,why,structure,createdAt:Date.now(),uses:0,ratings:[]});
+    toast('已保存');
+  }
+  save();closeModal('m-add');renderNav();renderCards();
+}
+function del(id){
+  if(!confirm('确认删除？'))return;
+  data=data.filter(x=>x.id!==id);
+  save();renderNav();renderCards();toast('已删除');
+}
+
+/* ── AI Polish: iterative compare ── */
+async function doPolish(){
+  const rawInput=document.getElementById('polish-input').value.trim();
+  const refineInput=document.getElementById('refine-input').value.trim();
+  const input=rawInput+(refineInput?'\n\n修改意见：'+refineInput:'');
+  if(!input.trim()){alert('请先描述你的场景或想法');return;}
+
+  let scene=document.getElementById('f-scene').value;
+  if(scene==='__custom__') scene=document.getElementById('f-scene-custom').value.trim()||'通用';
+  const btn=document.getElementById('polish-btn');
+  const oldContent=polishHistory.length?polishHistory[polishHistory.length-1]:document.getElementById('f-content').value;
+
+  btn.innerHTML='<span class="spinner"></span>打磨中…';btn.disabled=true;
+  document.getElementById('refine-box').style.display='none';
+  document.getElementById('btn-tweak').style.display='none';
+
+  const history=polishHistory.map((v,i)=>({role:i%2===0?'user':'assistant',content:v}));
+  const messages=[
+    {role:'user',content:`场景描述：${rawInput}`},
+    ...history.slice(1),
+    ...(refineInput?[{role:'user',content:'修改意见：'+refineInput}]:[])
+  ].filter((m,i,arr)=>i===0||m.content!==arr[i-1]?.content);
+
+  // Build clean message list
+  const cleanMessages=[];
+  if(polishRound===0){
+    cleanMessages.push({role:'user',content:`请为以下场景生成一条高质量 Prompt：\n\n${rawInput}`});
+  } else {
+    cleanMessages.push({role:'user',content:`原始场景：${rawInput}`});
+    polishHistory.forEach((v,i)=>{
+      cleanMessages.push({role:i%2===0?'assistant':'user',content:v});
+    });
+    cleanMessages.push({role:'user',content:refineInput||'请进一步优化，让它更深入、更专业'});
+  }
+
+  const systemP=`你是顶级 Prompt 工程师，专为商业/金融/管理专业人士设计高质量 Prompt 框架。
+
+高质量 Prompt 包含五要素（按需取舍）：
+① 角色设定：赋予专业身份
+② 背景约束：情境、限制、受众
+③ 任务指令：具体清晰的行动要求
+④ 输出格式：结构、长度、语气
+⑤ 质量标准：评判输出好坏的标准
+
+当前场景：${scene}
+
+要求：直接输出 Prompt 全文，不要解释，用 [占位符] 标注变量，中文，200-400字。`;
+
+  try{
+    const cfg=loadApiConfig();
+    const apiKey=cfg.key||'';
+    const baseUrl=(cfg.base||'https://api.anthropic.com').replace(/\/+$/,'');
+    const protocol=cfg.protocol||'anthropic';
+    const auth=cfg.auth||'bearer';
+    const model=cfg.model||(protocol==='anthropic'?'claude-sonnet-4-6':protocol==='gemini'?'gemini-2.0-flash':'gpt-4o');
+
+    const url=buildUrl(protocol, baseUrl, model, apiKey);
+    const bodyObj=buildBody(protocol, model, systemP, cleanMessages, 1000);
+    const res=await fetch(url,{method:'POST',mode:'cors',headers:buildHeaders(protocol,auth,apiKey),body:bodyObj});
+    const json=await res.json();
+    const newText=extractText(protocol,json)||json.error?.message||'生成失败，请检查 API 设置';
+    polishRound++;
+    polishHistory.push(newText);
+
+    // Show compare
+    if(oldContent&&polishRound>1){
+      document.getElementById('col-old-label').textContent=`第 ${polishRound-1} 版`;
+      document.getElementById('col-old').textContent=oldContent;
+      document.getElementById('col-new').textContent=newText;
+      document.getElementById('compare-grid').style.display='grid';
+    } else {
+      document.getElementById('col-old').textContent='';
+      document.getElementById('col-new').textContent=newText;
+      document.getElementById('col-old-label').textContent='初始版本';
+      if(polishRound===1){
+        document.getElementById('col-old').textContent='（首次生成，无对比版本）';
+        document.getElementById('compare-grid').style.display='grid';
+        document.getElementById('f-content').value=newText;
+        autoDetectStructure(newText);
+        document.getElementById('f-quality').value=autoQuality();
+      }
+    }
+
+    // Refine question
+    polishRound>0&&showRefineBox(newText);
+    document.getElementById('round-label').textContent=`第 ${polishRound} 轮`;
+    document.getElementById('btn-tweak').style.display='inline-block';
+
+  }catch(e){
+    const hint=corsErrorHint(e);
+    toast('请求失败');
+    // Show in compare area for full message
+    document.getElementById('col-new').textContent=hint;
+    document.getElementById('col-old').textContent='';
+    document.getElementById('col-old-label').textContent='错误';
+    document.getElementById('compare-grid').style.display='grid';
+  }
+  btn.innerHTML='▶ 生成 / 再迭代';btn.disabled=false;
+}
+
+function showRefineBox(latestText){
+  const questions=[
+    '你希望这个 Prompt 更注重<strong>速度（快速得到答案）</strong>还是<strong>深度（深入分析）</strong>？',
+    '输出格式你更喜欢<strong>结构化列表</strong>还是<strong>连贯段落</strong>？',
+    '角色设定是否需要更具体？比如指定行业经验年限或专业背景？',
+    '质量标准部分是否需要加入更严格的验收条件？',
+  ];
+  const q=questions[polishRound%questions.length];
+  document.getElementById('refine-q').innerHTML=q;
+  document.getElementById('refine-input').value='';
+  document.getElementById('refine-box').style.display='block';
+}
+
+function useNewVersion(){
+  const t=document.getElementById('col-new').textContent;
+  document.getElementById('f-content').value=t;
+  autoDetectStructure(t);
+  document.getElementById('f-quality').value=autoQuality();
+  toast('已使用新版本');
+}
+function useOldVersion(){
+  const t=document.getElementById('col-old').textContent;
+  if(t&&t!=='（首次生成，无对比版本）')document.getElementById('f-content').value=t;
+  toast('已保留旧版本');
+}
+function autoDetectStructure(t){
+  document.querySelectorAll('.schip').forEach(c=>{
+    const v=c.dataset.v;
+    const on=(v==='角色设定'&&t.includes('你是'))||(v==='背景约束'&&(/背景|约束|情境|受众/.test(t)))||(v==='任务指令'&&(/请|分析|生成|撰写|评估/.test(t)))||(v==='输出格式'&&(/格式|结构|字|语气/.test(t)))||(v==='质量标准'&&(/标准|要求|质量|原则|必须/.test(t)));
+    if(on)c.classList.add('on');
+  });
+}
+function autoQuality(){
+  const on=document.querySelectorAll('.schip.on').length;
+  return on>=4?'专家级':on>=2?'进阶级':'基础级';
+}
+
+/* ── Principles ── */
+function renderPrinciplesInline(){
+  const el=document.getElementById('principles-list-inline');
+  if(!principles.length){
+    el.innerHTML='<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:16px 0;">还没有原则<br>在下方添加第一条</div>';
+    return;
+  }
+  el.innerHTML=principles.map((p,i)=>`
+    <div class="principle-item" onclick="appendPrinciple(${i})">
+      <span class="pi-tag">原则 ${i+1}</span>${esc(p)}
+    </div>`).join('');
+}
+function appendPrinciple(i){
+  const el=document.getElementById('f-content');
+  el.value=(el.value?el.value+'\n\n':'')+'【原则】'+principles[i];
+  toast('已追加到 Prompt 内容');
+}
+function addPrincipleInline(){
+  const el=document.getElementById('new-principle-inline');
+  const v=el.value.trim();if(!v)return;
+  principles.push(v);savePrinciples();el.value='';
+  renderPrinciplesInline();renderNav();toast('原则已添加');
+}
+function openPrinciples(){
+  renderPrinciplesManage();openModal('m-principles');
+}
+function renderPrinciplesManage(){
+  const el=document.getElementById('principles-manage-list');
+  if(!principles.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:10px 0;">还没有原则</div>';return;}
+  el.innerHTML=principles.map((p,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;font-size:12px;color:var(--text2);line-height:1.6;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">${esc(p)}</div>
+      <button class="icon-btn danger" onclick="deletePrinciple(${i})">✕</button>
+    </div>`).join('');
+}
+function addPrincipleManage(){
+  const el=document.getElementById('new-principle-manage');
+  const v=el.value.trim();if(!v)return;
+  principles.push(v);savePrinciples();el.value='';
+  renderPrinciplesManage();renderNav();toast('原则已添加');
+}
+function deletePrinciple(i){
+  principles.splice(i,1);savePrinciples();
+  renderPrinciplesManage();renderPrinciplesInline();renderNav();
+}
+
+/* ── Detail ── */
+function openDetail(id){
+  const p=data.find(x=>x.id===id);if(!p)return;
+  detailId=id;
+  const c=sceneColor(p.scene);
+  document.getElementById('d-title').textContent=p.title;
+  document.getElementById('d-scene').innerHTML=`<div class="pcard-sdot" style="background:${c}"></div><span style="color:${c}">${esc(p.scene)}</span>`;
+  document.getElementById('d-quality').innerHTML=`<span class="qbadge ${QC[p.quality]||'q-basic'}">${p.quality}</span>`;
+  document.getElementById('d-date').textContent=fmt(p.createdAt);
+  const ratings=p.ratings||[];
+  const good=ratings.filter(r=>r.r==='好用').length;
+  const improve=ratings.filter(r=>r.r==='需改进').length;
+  document.getElementById('ds-uses').textContent=p.uses||0;
+  document.getElementById('ds-good').textContent=good;
+  document.getElementById('ds-improve').textContent=improve;
+  if(p.structure&&p.structure.length){
+    document.getElementById('d-struct').innerHTML=`<div class="detail-struct-label">包含要素</div><div class="schips">${p.structure.map(s=>`<span class="schip on">${esc(s)}</span>`).join('')}</div>`;
+  } else document.getElementById('d-struct').innerHTML='';
+  document.getElementById('d-content').textContent=p.content;
+  const why=document.getElementById('d-why');
+  if(p.why){why.textContent='为什么有效：'+p.why;why.style.display='block';}else why.style.display='none';
+  document.getElementById('copy-ok').style.display='none';
+  const uh=document.getElementById('use-history');
+  if(ratings.length){
+    document.getElementById('uh-list').innerHTML=ratings.slice(-8).reverse().map(r=>`
+      <div class="uh-item">
+        <div class="uh-dot ${RDOT[r.r]||'dot-none'}"></div>
+        <span style="color:${RCOLOR[r.r]||'var(--text3)'}">${r.r}</span>
+        <span>${fmtTime(r.ts)}</span>
+      </div>`).join('');
+    uh.style.display='block';
+  } else uh.style.display='none';
+  openModal('m-detail');
+}
+
+function copyAndRate(){
+  const p=data.find(x=>x.id===detailId);if(!p)return;
+  navigator.clipboard.writeText(p.content).then(()=>{
+    p.uses=(p.uses||0)+1;save();
+    document.getElementById('copy-ok').style.display='inline';
+    setTimeout(()=>document.getElementById('copy-ok').style.display='none',2000);
+    ratingTargetId=detailId;
+    setTimeout(()=>{closeModal('m-detail');openModal('m-rate');},600);
+  });
+}
+
+function submitRating(r){
+  const p=data.find(x=>x.id===ratingTargetId);if(!p)return;
+  if(!p.ratings)p.ratings=[];
+  p.ratings.push({r,ts:Date.now()});
+  save();closeModal('m-rate');renderNav();renderCards();
+  toast(r==='好用'?'太好了，已记录！':r==='需改进'?'已记录，记得回来迭代它':'已记录');
+}
+
+/* ── Export ── */
+function exportAll(){
+  const blob=new Blob([JSON.stringify({prompts:data,principles},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`prompt-library-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);toast('备份已下载');
+}
+
+/* ── Import ── */
+function triggerImport(){
+  document.getElementById('import-input').click();
+}
+function importBackup(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const obj=JSON.parse(e.target.result);
+      const newPrompts=obj.prompts||[];
+      const newPrinciples=obj.principles||[];
+      if(!Array.isArray(newPrompts))throw new Error('格式错误');
+      // merge: skip duplicates by id
+      const existingIds=new Set(data.map(x=>x.id));
+      let added=0;
+      newPrompts.forEach(p=>{if(!existingIds.has(p.id)){data.push(p);added++;}});
+      // merge principles (deduplicate by text)
+      const existingP=new Set(principles);
+      newPrinciples.forEach(p=>{if(!existingP.has(p)){principles.push(p);}});
+      save();savePrinciples();renderNav();renderCards();
+      toast(`导入成功：新增 ${added} 条 Prompt`);
+      // rebuild scene options
+      rebuildSceneOptions();
+    }catch(err){toast('导入失败：文件格式不正确');}
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+/* ── Custom Scene ── */
+function getCustomScenes(){
+  try{return JSON.parse(localStorage.getItem('custom-scenes')||'[]');}catch{return [];}
+}
+function saveCustomScenes(arr){localStorage.setItem('custom-scenes',JSON.stringify(arr));}
+
+function rebuildSceneOptions(){
+  const sel=document.getElementById('f-scene');
+  if(!sel)return;
+  const defaults=['写作与表达','分析与决策','学习与研究','头脑风暴','投资分析'];
+  const custom=getCustomScenes();
+  const all=[...defaults,...custom];
+  const current=sel.value==='__custom__'?null:sel.value;
+  sel.innerHTML=all.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')+
+    '<option value="__custom__">＋ 自定义场景…</option>';
+  if(current&&all.includes(current))sel.value=current;
+}
+
+function handleSceneSelect(sel){
+  const custom=document.getElementById('f-scene-custom');
+  if(sel.value==='__custom__'){
+    custom.style.display='block';custom.focus();
+  } else {
+    custom.style.display='none';
+  }
+}
+
+/* ── Mobile Sidebar ── */
+function toggleSidebar(){
+  const aside=document.querySelector('aside');
+  const overlay=document.getElementById('aside-overlay');
+  const isOpen=aside.classList.contains('open');
+  aside.classList.toggle('open',!isOpen);
+  overlay.classList.toggle('open',!isOpen);
+}
+
+/* ── API Settings ── */
+const API_CFG_KEY='prompt-lib-api-cfg';
+
+// Provider catalogue: id, name, icon, color, base, defaultModel, protocol, auth, keyHint, baseHint, docs, models[]
+const API_PROVIDERS=[
+  {id:'claude',   name:'Claude',      icon:'✦', color:'#c8973a',
+   base:'https://api.anthropic.com',  defaultModel:'claude-sonnet-4-6',
+   protocol:'anthropic', auth:'x-api-key',
+   keyHint:'在 console.anthropic.com 获取 Key',
+   baseHint:'',
+   docs:'https://docs.anthropic.com/en/api/getting-started',
+   desc:'Anthropic 旗舰模型，推理能力强',
+   models:['claude-opus-4-6','claude-sonnet-4-6','claude-haiku-4-5-20251001']},
+
+  {id:'openai',   name:'OpenAI',      icon:'◎', color:'#5ba0d0',
+   base:'https://api.openai.com',     defaultModel:'gpt-4o',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 platform.openai.com 获取 Key',
+   baseHint:'',
+   docs:'https://platform.openai.com/docs/api-reference',
+   desc:'GPT-4o / o3 系列',
+   models:['gpt-4o','gpt-4o-mini','o3','o4-mini']},
+
+  {id:'deepseek', name:'DeepSeek',    icon:'◈', color:'#4a9fd4',
+   base:'https://api.deepseek.com',   defaultModel:'deepseek-chat',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 platform.deepseek.com 获取 Key',
+   baseHint:'',
+   docs:'https://platform.deepseek.com/api-docs',
+   desc:'性价比极高，推理模型出色',
+   models:['deepseek-chat','deepseek-reasoner']},
+
+  {id:'kimi',     name:'Kimi',        icon:'◉', color:'#7a9fd4',
+   base:'https://api.moonshot.cn/v1', defaultModel:'moonshot-v1-8k',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 platform.moonshot.cn 获取 Key',
+   baseHint:'完整地址已预填，无需修改',
+   docs:'https://platform.moonshot.cn/docs/api/chat',
+   desc:'Moonshot AI · Kimi 长上下文',
+   models:['moonshot-v1-8k','moonshot-v1-32k','moonshot-v1-128k','kimi-latest']},
+
+  {id:'gemini',   name:'Gemini',      icon:'✦', color:'#4a9fd4',
+   base:'https://generativelanguage.googleapis.com', defaultModel:'gemini-2.0-flash',
+   protocol:'gemini', auth:'apikey',
+   keyHint:'在 aistudio.google.com 获取免费 API Key',
+   baseHint:'',
+   docs:'https://ai.google.dev/gemini-api/docs',
+   desc:'Google Gemini · 多模态旗舰',
+   models:['gemini-2.5-pro-preview-05-06','gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-pro','gemini-1.5-flash']},
+
+  {id:'qwen',     name:'通义千问',     icon:'❋', color:'#d47a4a',
+   base:'https://dashscope.aliyuncs.com/compatible-mode', defaultModel:'qwen-turbo',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在阿里云百炼控制台获取 Key',
+   baseHint:'',
+   docs:'https://help.aliyun.com/zh/model-studio/developer-reference/use-qwen-by-calling-api',
+   desc:'阿里云百炼 · 通义千问系列',
+   models:['qwen-turbo','qwen-plus','qwen-max','qwen3-235b-a22b','qwen2.5-72b-instruct']},
+
+  {id:'ernie',    name:'文心一言',     icon:'❁', color:'#4a7fd4',
+   base:'https://qianfan.baidubce.com/v2', defaultModel:'ernie-4.5-8k',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在百度智能云千帆控制台获取 Key',
+   baseHint:'',
+   docs:'https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Fm2vrveyu',
+   desc:'百度千帆 · 文心系列',
+   models:['ernie-4.5-8k','ernie-4.5-turbo-8k','ernie-speed-128k']},
+
+  {id:'hunyuan',  name:'混元',         icon:'◆', color:'#9a6ad4',
+   base:'https://api.hunyuan.cloud.tencent.com', defaultModel:'hunyuan-pro',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在腾讯云混元控制台获取 Key',
+   baseHint:'',
+   docs:'https://cloud.tencent.com/document/product/1729/111007',
+   desc:'腾讯混元大模型',
+   models:['hunyuan-pro','hunyuan-standard','hunyuan-lite','hunyuan-turbo']},
+
+  {id:'zhipu',    name:'智谱 GLM',     icon:'▣', color:'#6a9a4a',
+   base:'https://open.bigmodel.cn/api/paas', defaultModel:'glm-4-flash',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 open.bigmodel.cn 获取 Key',
+   baseHint:'',
+   docs:'https://open.bigmodel.cn/dev/api',
+   desc:'智谱 AI · GLM 系列',
+   models:['glm-4-flash','glm-4-air','glm-4','glm-z1-flash']},
+
+  {id:'minimax',  name:'MiniMax',      icon:'⬡', color:'#d44a9a',
+   base:'https://api.minimax.chat', defaultModel:'MiniMax-Text-01',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 platform.minimax.io 获取 Key',
+   baseHint:'',
+   docs:'https://platform.minimax.io/document/ChatCompletion%20v2',
+   desc:'MiniMax · 长文本与多模态',
+   models:['MiniMax-Text-01','abab6.5s-chat','abab5.5-chat']},
+
+  {id:'yi',       name:'零一万物',      icon:'○', color:'#4ad4c8',
+   base:'https://api.lingyiwanwu.com', defaultModel:'yi-large',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 platform.lingyiwanwu.com 获取 Key',
+   baseHint:'',
+   docs:'https://platform.lingyiwanwu.com/docs',
+   desc:'零一万物 · Yi 系列',
+   models:['yi-large','yi-medium','yi-spark','yi-large-turbo']},
+
+  {id:'groq',     name:'Groq',         icon:'▷', color:'#a04ad4',
+   base:'https://api.groq.com/openai', defaultModel:'llama-3.3-70b-versatile',
+   protocol:'openai', auth:'bearer',
+   keyHint:'在 console.groq.com 获取 Key',
+   baseHint:'',
+   docs:'https://console.groq.com/docs/openai',
+   desc:'极速推理，免费额度慷慨',
+   models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','mixtral-8x7b-32768','gemma2-9b-it']},
+
+  {id:'ollama',   name:'Ollama 本地',   icon:'⊙', color:'#5a5550',
+   base:'http://localhost:11434',      defaultModel:'llama3',
+   protocol:'openai', auth:'none',
+   keyHint:'本地运行无需 Key，留空即可',
+   baseHint:'默认端口 11434，如有修改请对应更改',
+   docs:'https://github.com/ollama/ollama/blob/main/docs/api.md',
+   desc:'本地运行，数据不出境',
+   models:['llama3','mistral','qwen2.5','deepseek-r1','gemma3']},
+
+  {id:'custom',   name:'自定义',        icon:'⚙', color:'#5a5550',
+   base:'',                            defaultModel:'',
+   protocol:'openai', auth:'bearer',
+   keyHint:'填入你的 API Key',
+   baseHint:'填入完整的 Base URL（不含 /v1）',
+   docs:'',
+   desc:'任意 OpenAI 兼容接口',
+   models:[]},
+];
+
+let currentProviderId=null;
+
+function loadApiConfig(){
+  try{return JSON.parse(localStorage.getItem(API_CFG_KEY)||'{}');}catch{return {};}
+}
+function saveApiConfig(cfg){localStorage.setItem(API_CFG_KEY,JSON.stringify(cfg));}
+
+function buildProviderGrid(){
+  const grid=document.getElementById('api-provider-grid');
+  if(!grid)return;
+  const cfg=loadApiConfig();
+  grid.innerHTML=API_PROVIDERS.map(p=>`
+    <div class="api-pcard ${cfg.provider===p.id?'active':''}" id="pcard-${p.id}" onclick="selectProvider('${p.id}')">
+      <div class="api-pcard-icon" style="color:${p.color}">${p.icon}</div>
+      <div class="api-pcard-name">${p.name}</div>
+    </div>`).join('');
+}
+
+function selectProvider(id){
+  const p=API_PROVIDERS.find(x=>x.id===id);if(!p)return;
+  currentProviderId=id;
+
+  // highlight card
+  document.querySelectorAll('.api-pcard').forEach(c=>c.classList.remove('active'));
+  document.getElementById('pcard-'+id)?.classList.add('active');
+
+  // fill info bar
+  const bar=document.getElementById('api-provider-bar');
+  bar.style.display='flex';
+  document.getElementById('apb-icon').textContent=p.icon;
+  document.getElementById('apb-icon').style.background=p.color+'22';
+  document.getElementById('apb-icon').style.color=p.color;
+  document.getElementById('apb-name').textContent=p.name;
+  document.getElementById('apb-desc').textContent=p.desc;
+  const docsEl=document.getElementById('apb-docs');
+  if(p.docs){docsEl.href=p.docs;docsEl.style.display='block';}
+  else docsEl.style.display='none';
+
+  // fill fields (only if empty or same provider)
+  const cfg=loadApiConfig();
+  if(!cfg.base||cfg.provider===id) document.getElementById('api-base-input').value=p.base;
+  if(!cfg.model||cfg.provider===id) document.getElementById('api-model-input').value=p.defaultModel;
+
+  // hints
+  document.getElementById('api-key-hint').textContent=p.keyHint;
+  document.getElementById('api-base-hint').textContent=p.baseHint||'';
+
+  // model chips
+  const chips=document.getElementById('api-model-chips');
+  chips.innerHTML=p.models.map(m=>`<span class="model-chip" onclick="pickModel('${m}')">${m}</span>`).join('');
+
+  // advanced: protocol + auth
+  document.getElementById('api-protocol-input').value=p.protocol;
+  const authVal = p.auth==='none'?'none': p.auth==='apikey'?'apikey': p.auth==='x-api-key'?'x-api-key':'bearer';
+  document.getElementById('api-auth-input').value=authVal;
+  document.getElementById('api-adv-hint').textContent=
+    p.id==='ollama' ?'Ollama 本地无需 Key，协议选 OpenAI 兼容。':
+    p.id==='claude' ?'Anthropic 原生协议，鉴权用 X-Api-Key。':
+    p.id==='gemini' ?'Gemini 专用协议，Key 附在请求 URL 中，无需 Authorization Header。':
+    '国产模型均使用 OpenAI 兼容协议，鉴权用 Authorization Bearer。';
+
+  document.getElementById('api-test-result').style.display='none';
+}
+
+function pickModel(m){
+  document.getElementById('api-model-input').value=m;
+  document.querySelectorAll('.model-chip').forEach(c=>c.classList.toggle('active',c.textContent===m));
+}
+
+function toggleApiAdvanced(){
+  const box=document.getElementById('api-advanced');
+  const arrow=document.getElementById('api-adv-arrow');
+  const open=box.style.display==='none';
+  box.style.display=open?'block':'none';
+  arrow.style.transform=open?'rotate(90deg)':'';
+}
+
+function openApiSettings(){
+  buildProviderGrid();
+  const cfg=loadApiConfig();
+  document.getElementById('api-key-input').value=cfg.key||'';
+  document.getElementById('api-base-input').value=cfg.base||'';
+  document.getElementById('api-model-input').value=cfg.model||'';
+  document.getElementById('api-protocol-input').value=cfg.protocol||'openai';
+  document.getElementById('api-auth-input').value=cfg.auth||'bearer';
+  document.getElementById('api-test-result').style.display='none';
+  document.getElementById('api-advanced').style.display='none';
+  document.getElementById('api-adv-arrow').style.transform='';
+  // restore provider selection
+  if(cfg.provider) selectProvider(cfg.provider);
+  else { document.getElementById('api-provider-bar').style.display='none'; }
+  openModal('m-api');
+  if(window.innerWidth<=700){
+    document.querySelector('aside').classList.remove('open');
+    document.getElementById('aside-overlay').classList.remove('open');
+  }
+}
+
+function saveApiSettings(){
+  const cfg={
+    provider: currentProviderId||loadApiConfig().provider||'custom',
+    key:      document.getElementById('api-key-input').value.trim(),
+    base:     document.getElementById('api-base-input').value.trim(),
+    model:    document.getElementById('api-model-input').value.trim(),
+    protocol: document.getElementById('api-protocol-input').value,
+    auth:     document.getElementById('api-auth-input').value,
+  };
+  saveApiConfig(cfg);
+  updateApiStatusIndicator();
+  closeModal('m-api');
+  toast('API 设置已保存');
+}
+
+function clearApiSettings(){
+  if(!confirm('清除所有 API 设置？'))return;
+  localStorage.removeItem(API_CFG_KEY);
+  currentProviderId=null;
+  document.getElementById('api-key-input').value='';
+  document.getElementById('api-base-input').value='';
+  document.getElementById('api-model-input').value='';
+  document.getElementById('api-key-hint').textContent='';
+  document.getElementById('api-base-hint').textContent='';
+  document.getElementById('api-model-chips').innerHTML='';
+  document.getElementById('api-provider-bar').style.display='none';
+  document.getElementById('api-test-result').style.display='none';
+  document.querySelectorAll('.api-pcard').forEach(c=>c.classList.remove('active'));
+  updateApiStatusIndicator();
+  toast('已清除');
+}
+
+function toggleApiKeyVisibility(){
+  const inp=document.getElementById('api-key-input');
+  inp.type=inp.type==='password'?'text':'password';
+}
+
+function buildUrl(protocol, baseUrl, model, apiKey){
+  const b = baseUrl.replace(/\/+$/, '');
+  if(protocol === 'anthropic') return `${b}/v1/messages`;
+  if(protocol === 'gemini')    return `${b}/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  // openai-compatible: if base already ends with /v1, don't double-add
+  const base = b.endsWith('/v1') ? b : `${b}/v1`;
+  return `${base}/chat/completions`;
+}
+
+function buildHeaders(protocol, auth, apiKey){
+  const h = {'Content-Type':'application/json'};
+  if(protocol === 'gemini') return h; // key goes in URL for Gemini
+  if(protocol === 'anthropic'){
+    if(apiKey) h['x-api-key'] = apiKey;
+  } else {
+    if(auth === 'x-api-key'){ if(apiKey) h['x-api-key'] = apiKey; }
+    else if(auth !== 'none'){ if(apiKey) h['Authorization'] = 'Bearer ' + apiKey; }
+  }
+  return h;
+}
+
+function buildBody(protocol, model, systemP, messages, maxTokens){
+  if(protocol === 'anthropic'){
+    return JSON.stringify({model, max_tokens:maxTokens, system:systemP, messages});
+  }
+  if(protocol === 'gemini'){
+    // Convert messages to Gemini format
+    const contents = messages.map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{text: m.content}]
+    }));
+    return JSON.stringify({
+      systemInstruction: {parts:[{text:systemP}]},
+      contents,
+      generationConfig: {maxOutputTokens: maxTokens}
+    });
+  }
+  // openai
+  return JSON.stringify({model, max_tokens:maxTokens, messages:[{role:'system',content:systemP},...messages]});
+}
+
+function extractText(protocol, json){
+  if(protocol === 'anthropic') return json.content?.[0]?.text;
+  if(protocol === 'gemini')    return json.candidates?.[0]?.content?.parts?.[0]?.text;
+  return json.choices?.[0]?.message?.content;
+}
+
+function corsErrorHint(e){
+  if(e.message && e.message.includes('fetch'))
+    return `✕ 网络错误：${e.message}\n\n💡 提示：部分 API 不支持从浏览器本地文件直接调用（CORS 限制）。建议将此文件部署到本地服务器（如 VSCode Live Server），或使用支持跨域的 API。`;
+  return `✕ 网络错误：${e.message}`;
+}
+
+async function testApiConnection(){
+  const cfg={
+    key:      document.getElementById('api-key-input').value.trim(),
+    base:     document.getElementById('api-base-input').value.trim(),
+    model:    document.getElementById('api-model-input').value.trim(),
+    protocol: document.getElementById('api-protocol-input').value,
+    auth:     document.getElementById('api-auth-input').value,
+  };
+  const btn=document.getElementById('api-test-btn');
+  const resEl=document.getElementById('api-test-result');
+  btn.innerHTML='<span class="spinner"></span>测试中…';btn.disabled=true;
+  resEl.style.display='none';
+
+  const baseUrl=(cfg.base||'https://api.anthropic.com').replace(/\/+$/,'');
+  const protocol=cfg.protocol||'openai';
+  const model=cfg.model||(protocol==='anthropic'?'claude-sonnet-4-6':protocol==='gemini'?'gemini-2.0-flash':'gpt-4o-mini');
+
+  try{
+    const url=buildUrl(protocol, baseUrl, model, cfg.key);
+    const body=buildBody(protocol, model, 'You are helpful.', [{role:'user',content:'hi'}], 10);
+    const r=await fetch(url,{method:'POST',mode:'cors',headers:buildHeaders(protocol,cfg.auth,cfg.key),body});
+    const json=await r.json();
+    const txt=extractText(protocol,json);
+    const ok=r.ok && txt!=null;
+    resEl.style.display='block';
+    if(ok){
+      resEl.style.background='var(--green-bg)';resEl.style.borderLeft='2px solid var(--green)';resEl.style.color='var(--green)';
+      resEl.textContent=`✓ 连接成功！${txt?'回复预览：'+txt.slice(0,40):''}`;
+    } else {
+      resEl.style.background='var(--red-bg)';resEl.style.borderLeft='2px solid var(--red)';resEl.style.color='#e06060';
+      resEl.textContent=`✕ 失败：${json.error?.message||json.error?.status||r.status+' '+r.statusText}`;
+    }
+  }catch(e){
+    resEl.style.display='block';resEl.style.background='var(--red-bg)';
+    resEl.style.borderLeft='2px solid var(--red)';resEl.style.color='#e06060';
+    resEl.style.whiteSpace='pre-wrap';
+    resEl.textContent=corsErrorHint(e);
+  }
+  btn.innerHTML='连接测试';btn.disabled=false;
+}
+
+function updateApiStatusIndicator(){
+  const cfg=loadApiConfig();
+  const dot=document.getElementById('api-status-dot');
+  const label=document.getElementById('api-status-label');
+  if(!dot||!label)return;
+  const hasKey=cfg.key||(cfg.auth==='none')||(cfg.auth==='apikey'&&cfg.key);
+  if(cfg.key||cfg.provider==='ollama'){
+    dot.style.background='var(--green)';
+    const p=API_PROVIDERS.find(x=>x.id===cfg.provider);
+    label.textContent=p?p.name:'已配置';label.style.color='var(--green)';
+  } else {
+    dot.style.background='var(--text3)';
+    label.textContent='未配置';label.style.color='var(--text3)';
+  }
+}
+
+/* ── Guide ── */
+const GUIDE_SEEN_KEY='prompt-lib-guide-seen';
+function openGuide(){
+  document.getElementById('guide-no-show').checked=!!localStorage.getItem(GUIDE_SEEN_KEY);
+  openModal('m-guide');
+  if(window.innerWidth<=700){
+    document.querySelector('aside').classList.remove('open');
+    document.getElementById('aside-overlay').classList.remove('open');
+  }
+}
+function markGuideSeen(){
+  if(document.getElementById('guide-no-show').checked){
+    localStorage.setItem(GUIDE_SEEN_KEY,'1');
+  } else {
+    localStorage.removeItem(GUIDE_SEEN_KEY);
+  }
+}
+function switchGuideTab(btn,panelId){
+  document.querySelectorAll('.guide-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.guide-panel').forEach(p=>p.style.display='none');
+  btn.classList.add('active');
+  document.getElementById(panelId).style.display='block';
+}
+function maybeAutoOpenGuide(){
+  if(!localStorage.getItem(GUIDE_SEEN_KEY)){
+    setTimeout(()=>openGuide(),400);
+  }
+}
+
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function maybeClose(e,id){if(e.target.id===id)closeModal(id);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+/* ── Seed ── */
+function seed(){
+  if(data.length>0)return;
+  const now=Date.now();
+  data=[
+    {id:uid(),scene:'写作与表达',quality:'专家级',title:'商务提案撰写框架',
+     content:`你是一位拥有15年经验的商业顾问，擅长撰写具有说服力的商业提案。\n\n背景：我需要向[目标受众]提交一份关于[主题]的提案。受众最关心[核心关切]，决策节点为[时间]。\n\n任务：\n1. 按照「问题现状 → 解决方案 → 执行计划 → 预期回报」结构撰写\n2. 每部分配合1-2个具体数据或案例\n3. 结尾包含明确的行动号召\n\n输出格式：结构化文档，含小标题，800-1200字，专业自信语气\n\n质量标准：读完后受众应清晰理解「为什么是现在、为什么是我们、下一步是什么」`,
+     tags:['提案','说服','商务'],structure:['角色设定','背景约束','任务指令','输出格式','质量标准'],
+     why:'五要素齐全，质量标准提供明确验收条件',createdAt:now-5*86400000,uses:3,ratings:[{r:'好用',ts:now-4*86400000},{r:'好用',ts:now-2*86400000},{r:'一般',ts:now-86400000}]},
+    {id:uid(),scene:'投资分析',quality:'专家级',title:'个股投资价值评估框架',
+     content:`你是一位价值投资分析师，深受巴菲特和芒格投资哲学影响。\n\n背景：我正在评估[公司名称/股票代码]的投资价值，考虑[持有期限]，风险偏好[保守/平衡/进取]。\n\n任务：从以下维度分析：\n1. 商业模式：核心竞争力与护城河\n2. 财务健康：盈利能力、负债、现金流\n3. 成长驱动：未来3-5年增长逻辑\n4. 风险因素：行业/公司/宏观风险\n5. 估值判断：与历史、同业对比是否合理\n\n输出格式：每维度1-5分评分附理由，综合评级（强烈推荐/值得关注/中性/回避）+ 关键逻辑摘要\n\n质量标准：区分事实与判断；风险篇幅不少于优势；结论逻辑自洽`,
+     tags:['个股','价值投资','估值'],structure:['角色设定','背景约束','任务指令','输出格式','质量标准'],
+     why:'评分制输出结构清晰；强制区分事实与判断；风险与优势必须对等',createdAt:now-3*86400000,uses:1,ratings:[{r:'好用',ts:now-2*86400000}]},
+    {id:uid(),scene:'分析与决策',quality:'专家级',title:'竞品深度分析框架',
+     content:`你是一位战略咨询顾问，专注市场竞争分析。\n\n背景：分析[行业]中[竞品名称]，目的是为我方[产品/服务]差异化定位提供决策依据。\n\n任务：\n1. 产品定位与核心价值主张\n2. 目标客户与市场份额\n3. 商业模式与盈利结构\n4. 核心优势（护城河）\n5. 明显弱点与战略盲点\n6. 近期动态与战略意图\n\n输出格式：每维度2-3个bullet points，最后给出「对我方的3条战略启示」\n\n质量标准：区分已知信息与推断；启示需具体可执行，不能泛泛而谈`,
+     tags:['竞品','战略','分析'],structure:['角色设定','背景约束','任务指令','输出格式','质量标准'],
+     why:'要求区分事实与推断；结尾强制输出可执行启示',createdAt:now-2*86400000,uses:0,ratings:[]},
+    {id:uid(),scene:'学习与研究',quality:'专家级',title:'费曼学习法深度提问框架',
+     content:`你是一位苏格拉底式学习教练，擅长用追问帮助学习者真正理解概念。\n\n背景：我正在学习[概念/主题]，我目前的理解是：[用自己的话描述]\n\n任务：\n1. 评估我的理解是否准确，指出误解或遗漏\n2. 用一个日常生活类比解释本质\n3. 提出3个「为什么」层级的追问，帮我理解更深\n4. 掌握这个概念后，我能解决哪些实际问题？\n\n输出格式：分四部分，每部分不超过150字，追问用问句形式\n\n质量标准：类比必须来自日常生活，不用学术类比；追问要能让我产生「啊，原来如此」的顿悟`,
+     tags:['学习','费曼','深度理解'],structure:['角色设定','背景约束','任务指令','输出格式','质量标准'],
+     why:'追问而非直接给答案；类比要求来自日常生活',createdAt:now-86400000,uses:2,ratings:[{r:'好用',ts:now-43200000},{r:'好用',ts:now-3600000}]},
+    {id:uid(),scene:'头脑风暴',quality:'专家级',title:'突破性创意发散框架',
+     content:`你是一位创意总监，具备设计思维、逆向思维和跨行业迁移能力。\n\n背景：为[问题/挑战]寻找突破性解决方案。现有主流做法是[常规方案]，我希望找到差异化路径。\n\n任务：用三种框架各生成2个想法：\n1. 逆向思维：如果要让问题变得更糟，会怎么做？（反向推导解法）\n2. 跨行业迁移：[餐饮/医疗/军事/游戏]行业如何解决类似问题？\n3. 极端假设：预算是现在10倍/没有预算，会怎么做？\n\n输出格式：6个想法，每个含：核心思路（1句）+ 实施路径（2-3句）+ 潜在风险（1句）\n\n质量标准：想法必须是我没想到的；至少2个在30天内可以试验`,
+     tags:['创意','发散','突破'],structure:['角色设定','背景约束','任务指令','输出格式','质量标准'],
+     why:'三种思维框架强制跳出常规；要求附实施路径和风险，让创意落地',createdAt:now,uses:0,ratings:[]}
+  ];
+  if(!principles.length){
+    principles=['分析类任务加上「区分事实与推断」，质量立刻提升','质量标准要写「读完后受众应该能做什么」，而不是模糊的「高质量」','角色设定加上年限或具体背景，输出会更专业，如「拥有15年经验的…」'];
+    savePrinciples();
+  }
+  save();
+}
+
+load();seed();renderNav();renderCards();updateApiStatusIndicator();maybeAutoOpenGuide();
+</script>
+</body>
+</html>
