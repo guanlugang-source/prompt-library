@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prompt 框架库 v3</title>
+<script>
+// Run before CSS renders to avoid flash of wrong theme
+(function(){
+  var saved=localStorage.getItem('prompt-lib-theme');
+  if(saved) document.documentElement.setAttribute('data-theme',saved);
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+/* ── Dark theme (default) ── */
 :root {
   --bg:#0f0e0c;--bg2:#181714;--bg3:#211f1b;--bg4:#2a2722;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
@@ -16,6 +24,45 @@
   --blue:#3a7ab0;--blue-bg:rgba(58,122,176,0.12);
   --c1:#c0622a;--c2:#2b6fa0;--c3:#2a7b5e;--c4:#7a5bb0;--c5:#b84040;
   --radius:8px;--radius-lg:14px;
+  --theme-icon:'☀';
+  color-scheme:dark;
+}
+/* ── Light theme ── */
+[data-theme="light"] {
+  --bg:#f8f6f1;--bg2:#ffffff;--bg3:#f0ede6;--bg4:#e8e4db;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--border3:rgba(0,0,0,0.22);
+  --text:#1a1916;--text2:#5a5650;--text3:#9a9590;
+  --gold:#a87020;--gold2:#c8973a;--gold-bg:rgba(168,112,32,0.08);--gold-bg2:rgba(168,112,32,0.15);
+  --green:#1e7a40;--green-bg:rgba(30,122,64,0.1);
+  --red:#b03030;--red-bg:rgba(176,48,48,0.1);
+  --blue:#1a5a9a;--blue-bg:rgba(26,90,154,0.1);
+  --c1:#b04818;--c2:#1a5a9a;--c3:#1a6a4a;--c4:#5a3aa0;--c5:#a02828;
+  --theme-icon:'🌙';
+  color-scheme:light;
+}
+/* ── Follow system when no manual preference ── */
+@media (prefers-color-scheme:light) {
+  :root:not([data-theme="dark"]) {
+    --bg:#f8f6f1;--bg2:#ffffff;--bg3:#f0ede6;--bg4:#e8e4db;
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--border3:rgba(0,0,0,0.22);
+    --text:#1a1916;--text2:#5a5650;--text3:#9a9590;
+    --gold:#a87020;--gold2:#c8973a;--gold-bg:rgba(168,112,32,0.08);--gold-bg2:rgba(168,112,32,0.15);
+    --green:#1e7a40;--green-bg:rgba(30,122,64,0.1);
+    --red:#b03030;--red-bg:rgba(176,48,48,0.1);
+    --blue:#1a5a9a;--blue-bg:rgba(26,90,154,0.1);
+    --c1:#b04818;--c2:#1a5a9a;--c3:#1a6a4a;--c4:#5a3aa0;--c5:#a02828;
+    --theme-icon:'🌙';
+    color-scheme:light;
+  }
+}
+/* ── Smooth transition when switching ── */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.spinner, .spinner *,
+.overlay, .overlay *,
+[style*="animation"] {
+  transition: none !important;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
@@ -23,7 +70,7 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-he
 /* ── Header ── */
 header{padding:0 28px;height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:50;}
 .logo{display:flex;align-items:center;gap:10px;}
-.logo-mark{width:26px;height:26px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0f0e0c;font-family:'DM Mono',monospace;}
+.logo-mark{width:26px;height:26px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bg);font-family:'DM Mono',monospace;}
 .logo-text{font-family:'Noto Serif SC',serif;font-size:15px;font-weight:700;letter-spacing:0.02em;}
 .logo-ver{font-size:10px;color:var(--gold);background:var(--gold-bg);padding:1px 6px;border-radius:3px;margin-left:4px;font-family:'DM Mono',monospace;}
 .hstats{display:flex;gap:20px;align-items:center;}
@@ -55,7 +102,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 .sicon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none;}
 .btn{padding:7px 14px;border:none;border-radius:var(--radius);font-size:12px;font-family:'Sora',sans-serif;cursor:pointer;font-weight:500;transition:opacity 0.12s,transform 0.1s;white-space:nowrap;}
 .btn:active{transform:scale(0.97);}
-.btn-gold{background:var(--gold);color:#0f0e0c;}
+.btn-gold{background:var(--gold);color:var(--bg);}
 .btn-gold:hover{opacity:0.88;}
 .btn-ghost{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
 .btn-ghost:hover{background:var(--bg3);color:var(--text);}
@@ -152,7 +199,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 /* ── AI Polish: iterative compare ── */
 .polish-wrap{margin-bottom:14px;}
 .polish-hdr{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
-.polish-badge{font-size:10px;font-weight:600;color:#0f0e0c;background:var(--gold);padding:2px 7px;border-radius:3px;letter-spacing:0.04em;}
+.polish-badge{font-size:10px;font-weight:600;color:var(--bg);background:var(--gold);padding:2px 7px;border-radius:3px;letter-spacing:0.04em;}
 .polish-desc{font-size:11.5px;color:var(--text3);}
 .polish-input{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:'Sora',sans-serif;color:var(--text);outline:none;resize:vertical;min-height:62px;line-height:1.6;transition:border-color 0.15s;}
 .polish-input::placeholder{color:var(--text3);}
@@ -211,7 +258,22 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 .rating-label{font-weight:500;}
 .rating-desc{font-size:11px;color:var(--text3);margin-left:auto;}
 
-/* ── Spinner ── */
+/* ── Theme toggle button ── */
+#theme-btn{
+  width:34px;height:34px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg3);cursor:pointer;font-size:16px;display:flex;align-items:center;
+  justify-content:center;transition:background 0.15s,border-color 0.15s,transform 0.1s;
+  flex-shrink:0;padding:0;
+}
+#theme-btn:hover{background:var(--bg4);border-color:var(--border3);}
+#theme-btn:active{transform:scale(0.92);}
+#theme-btn::after{
+  content:var(--theme-icon,'☀');
+  display:block;line-height:1;
+}
+@media(max-width:700px){#theme-btn{width:28px;height:28px;font-size:14px;}}
+
+/* ── Spinner: override transition reset to keep animation ── */
 .spinner{display:inline-block;width:12px;height:12px;border:1.5px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -295,7 +357,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 
 /* ai steps */
 .g-ai-step{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);}
-.g-ai-badge{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;background:var(--gold);color:#0f0e0c;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-top:1px;}
+.g-ai-badge{font-size:9px;font-weight:700;font-family:'DM Mono',monospace;background:var(--gold);color:var(--bg);padding:2px 6px;border-radius:3px;white-space:nowrap;margin-top:1px;}
 .g-ai-text{font-size:12px;color:var(--text2);line-height:1.65;}
 .g-api-chip{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;}
 
@@ -339,6 +401,8 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
     <div class="hstat"><div class="hstat-num" id="h-used">0</div><div class="hstat-label">已使用</div></div>
     <div class="hdiv"></div>
     <div class="hstat"><div class="hstat-num" id="h-principles">0</div><div class="hstat-label">原则数</div></div>
+    <div class="hdiv"></div>
+    <button id="theme-btn" onclick="toggleTheme()" title="切换白天/黑夜模式" aria-label="切换主题"></button>
   </div>
 </header>
 
@@ -611,7 +675,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 <div class="modal modal-wide" onclick="event.stopPropagation()" style="max-width:780px;">
   <div class="mhdr">
     <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0f0e0c;font-family:'DM Mono',monospace;flex-shrink:0;">P</div>
+      <div style="width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bg);font-family:'DM Mono',monospace;flex-shrink:0;">P</div>
       <div>
         <div class="mtitle">Prompt 框架库 · 使用指南</div>
         <div style="font-size:10px;color:var(--text3);margin-top:1px;letter-spacing:0.06em;">5 分钟上手，终身受益</div>
@@ -709,7 +773,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
         </div>
 
         <div class="g-step" style="border-left-color:transparent;">
-          <div class="g-step-num" style="background:var(--gold);color:#0f0e0c;">★</div>
+          <div class="g-step-num" style="background:var(--gold);color:var(--bg);">★</div>
           <div class="g-step-body">
             <div class="g-step-title">沉淀原则</div>
             <div class="g-step-desc">用了一段时间后，把反复有效的技巧记录到「原则库」，下次写 Prompt 时一键追加，形成你的专属方法论。</div>
@@ -1860,7 +1924,37 @@ function updateApiStatusIndicator(){
   }
 }
 
-/* ── Guide ── */
+/* ── Theme ── */
+const THEME_KEY='prompt-lib-theme';
+
+function initTheme(){
+  const saved=localStorage.getItem(THEME_KEY);
+  if(saved){
+    document.documentElement.setAttribute('data-theme',saved);
+  }
+  // If no saved preference, the CSS media query handles it automatically
+}
+
+function toggleTheme(){
+  const root=document.documentElement;
+  const current=root.getAttribute('data-theme');
+  // Determine effective current theme (considering system preference)
+  const systemDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = current==='dark' || (!current && systemDark);
+  const next = isDark ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+}
+
+// Listen for system theme changes (auto-updates if user hasn't overridden)
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  if(!localStorage.getItem(THEME_KEY)){
+    // No manual override — just let CSS media query handle it
+    document.documentElement.removeAttribute('data-theme');
+  }
+});
+
+
 const GUIDE_SEEN_KEY='prompt-lib-guide-seen';
 function openGuide(){
   document.getElementById('guide-no-show').checked=!!localStorage.getItem(GUIDE_SEEN_KEY);
@@ -1928,7 +2022,7 @@ function seed(){
   save();
 }
 
-load();seed();renderNav();renderCards();updateApiStatusIndicator();maybeAutoOpenGuide();
+load();seed();renderNav();renderCards();updateApiStatusIndicator();maybeAutoOpenGuide();initTheme();
 </script>
 </body>
 </html>
